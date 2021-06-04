@@ -1,0 +1,565 @@
+{
+  "version": "experimental",
+  "tags": [
+    {
+      "name": "authorization-method",
+      "path": "./authorization-method.js",
+      "description": "An element that renders various authorization methods.\n\n## Development\n\nThe element mixes in multiple mixins from `src/` directory.\nEach mixin support an authorization method. When selection change (the `type`\nproperty) a render function from corresponding mixin is called.",
+      "attributes": [
+        {
+          "name": "type",
+          "description": "Authorization method type.\n\nSupported types are (case insensitive, spaces sensitive):\n\n- Basic\n- Client certificate\n- Digest\n- NTLM\n- OAuth 1\n- OAuth 2\n\nDepending on selected type different properties are used.\nFor example Basic type only uses `username` and `password` properties,\nwhile NTLM also uses `domain` property.\n\nSee readme file for detailed list of properties depending on selected type.",
+          "type": "string"
+        },
+        {
+          "name": "readOnly",
+          "description": "When set the editor is in read only mode.",
+          "type": "boolean"
+        },
+        {
+          "name": "disabled",
+          "description": "When set the inputs are disabled",
+          "type": "boolean"
+        },
+        {
+          "name": "compatibility",
+          "description": "Enables compatibility with Anypoint components.",
+          "type": "boolean"
+        },
+        {
+          "name": "outlined",
+          "description": "Enables Material Design outlined style",
+          "type": "boolean"
+        },
+        {
+          "name": "narrow",
+          "description": "Renders mobile friendly view.",
+          "type": "boolean"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "password",
+          "type": "string"
+        },
+        {
+          "name": "redirectUri",
+          "type": "string"
+        },
+        {
+          "name": "accessTokenUri",
+          "type": "string"
+        },
+        {
+          "name": "authorizationUri",
+          "type": "string"
+        },
+        {
+          "name": "domain",
+          "description": "Authorization domain\n\nUsed in the following types:\n- NTLM",
+          "type": "string | undefined"
+        },
+        {
+          "name": "algorithm",
+          "description": "The algorithm used to hash the response for Digest authorization.\n\nIt can be either `MD5` or `MD5-sess`.\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "qop",
+          "description": "The quality of protection value for the digest response.\nEither '', 'auth' or 'auth-int'\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "nc",
+          "description": "Nonce count - increments with each request used with the same nonce\n\nUsed in the following types:\n- Digest",
+          "type": "number"
+        },
+        {
+          "name": "cnonce",
+          "description": "Client nonce\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "opaque",
+          "description": "A string of data specified by the server\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "response",
+          "description": "Hashed response to server challenge\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "httpMethod",
+          "description": "Request HTTP method\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "requestUrl",
+          "description": "Current request URL.\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "requestBody",
+          "description": "Current request body.\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "consumerKey",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "consumerSecret",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "token",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "tokenSecret",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "nonce",
+          "description": "Server issued nonce for Digest authorization.\n\nUsed in the following types:\n- Digest\n- OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "realm",
+          "description": "Server issued realm for Digest authorization.\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "signatureMethod",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "requestTokenUri",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "authTokenMethod",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "authParamsLocation",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "responseType",
+          "description": "Selected authorization grand type.",
+          "type": "string"
+        },
+        {
+          "name": "clientId",
+          "description": "The client ID for the auth token.",
+          "type": "string"
+        },
+        {
+          "name": "clientSecret",
+          "description": "The client secret. It to be used when selected server flow.",
+          "type": "string"
+        },
+        {
+          "name": "preventCustomScopes",
+          "description": "If true then the `oauth2-scope-selector` will disallow to add a scope that is not\nin the `allowedScopes` list. Has no effect if the `allowedScopes` is not set.",
+          "type": "boolean"
+        },
+        {
+          "name": "accessToken",
+          "description": "When the user authorized the app it should be set to the token value.\nThis element do not perform authorization. Other elements must intercept\nthe token request event and perform the authorization.",
+          "type": "string"
+        },
+        {
+          "name": "tokenType",
+          "description": "By default it is \"bearer\" as the only one defined in OAuth 2.0 spec.\nIf the token response contains `tokenType` property then this value is updated.",
+          "type": "string | undefined"
+        },
+        {
+          "name": "advanced",
+          "description": "If set it renders authorization url, token url and scopes as advanced options\nwhich are then invisible by default. User can oen setting using the UI.",
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "advancedOpened",
+          "description": "If true then the advanced options are opened.",
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "noResponseType",
+          "description": "If set, the response type selector is hidden from the UI.",
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "oauthDeliveryMethod",
+          "description": "Informs about what filed of the authenticated request the token property should be set.\nBy default the value is `header` which corresponds to the `authorization` by default,\nbut it is configured by the `deliveryName` property.\n\nThis can be used by the AMF model when the API spec defines where the access token should be\nput in the authenticated request.",
+          "type": "\"header\" | \"query\" | \"body\" | undefined",
+          "default": "\"header\""
+        },
+        {
+          "name": "oauthDeliveryName",
+          "description": "The name of the authenticated request property that carries the token.\nBy default it is `authorization` which corresponds to `header` value of the `deliveryMethod` property.\n\nBy setting both `deliveryMethod` and `deliveryName` you instruct the application (assuming it reads this values)\nwhere to put the authorization token.",
+          "type": "string | undefined",
+          "default": "\"authorization\""
+        },
+        {
+          "name": "baseUri",
+          "description": "The base URI to use to construct the correct URLs to the authorization endpoints.\n\nWhen the paths are relative then base URI is added to the path.\nRelative paths must start with '/'.\n\nNote, URL processing is happening internally in the component. The produced authorize event\nwill have base URI already applied.",
+          "type": "string | undefined"
+        }
+      ],
+      "properties": [
+        {
+          "name": "styles",
+          "type": "CSSResult"
+        },
+        {
+          "name": "type",
+          "attribute": "type",
+          "description": "Authorization method type.\n\nSupported types are (case insensitive, spaces sensitive):\n\n- Basic\n- Client certificate\n- Digest\n- NTLM\n- OAuth 1\n- OAuth 2\n\nDepending on selected type different properties are used.\nFor example Basic type only uses `username` and `password` properties,\nwhile NTLM also uses `domain` property.\n\nSee readme file for detailed list of properties depending on selected type.",
+          "type": "string"
+        },
+        {
+          "name": "readOnly",
+          "attribute": "readOnly",
+          "description": "When set the editor is in read only mode.",
+          "type": "boolean"
+        },
+        {
+          "name": "disabled",
+          "attribute": "disabled",
+          "description": "When set the inputs are disabled",
+          "type": "boolean"
+        },
+        {
+          "name": "compatibility",
+          "attribute": "compatibility",
+          "description": "Enables compatibility with Anypoint components.",
+          "type": "boolean"
+        },
+        {
+          "name": "outlined",
+          "attribute": "outlined",
+          "description": "Enables Material Design outlined style",
+          "type": "boolean"
+        },
+        {
+          "name": "narrow",
+          "attribute": "narrow",
+          "description": "Renders mobile friendly view.",
+          "type": "boolean"
+        },
+        {
+          "name": "authorizing",
+          "description": "Used in the following types:\n- OAuth 1\n- OAuth 2",
+          "type": "boolean | null"
+        },
+        {
+          "name": "username",
+          "attribute": "username",
+          "type": "string"
+        },
+        {
+          "name": "password",
+          "attribute": "password",
+          "type": "string"
+        },
+        {
+          "name": "redirectUri",
+          "attribute": "redirectUri",
+          "type": "string"
+        },
+        {
+          "name": "accessTokenUri",
+          "attribute": "accessTokenUri",
+          "type": "string"
+        },
+        {
+          "name": "authorizationUri",
+          "attribute": "authorizationUri",
+          "type": "string"
+        },
+        {
+          "name": "onchange",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "eventsTarget",
+          "description": "By default the element listens on the `window` object. If this value is set,\nthen all events listeners will be attached to this object instead of `window`.",
+          "type": "EventTarget"
+        },
+        {
+          "name": "domain",
+          "attribute": "domain",
+          "description": "Authorization domain\n\nUsed in the following types:\n- NTLM",
+          "type": "string | undefined"
+        },
+        {
+          "name": "algorithm",
+          "attribute": "algorithm",
+          "description": "The algorithm used to hash the response for Digest authorization.\n\nIt can be either `MD5` or `MD5-sess`.\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "qop",
+          "attribute": "qop",
+          "description": "The quality of protection value for the digest response.\nEither '', 'auth' or 'auth-int'\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "nc",
+          "attribute": "nc",
+          "description": "Nonce count - increments with each request used with the same nonce\n\nUsed in the following types:\n- Digest",
+          "type": "number"
+        },
+        {
+          "name": "cnonce",
+          "attribute": "cnonce",
+          "description": "Client nonce\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "opaque",
+          "attribute": "opaque",
+          "description": "A string of data specified by the server\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "response",
+          "attribute": "response",
+          "description": "Hashed response to server challenge\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "httpMethod",
+          "attribute": "httpMethod",
+          "description": "Request HTTP method\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "requestUrl",
+          "attribute": "requestUrl",
+          "description": "Current request URL.\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "requestBody",
+          "attribute": "requestBody",
+          "description": "Current request body.\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "consumerKey",
+          "attribute": "consumerKey",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "consumerSecret",
+          "attribute": "consumerSecret",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "token",
+          "attribute": "token",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "tokenSecret",
+          "attribute": "tokenSecret",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "attribute": "timestamp",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "nonce",
+          "attribute": "nonce",
+          "description": "Server issued nonce for Digest authorization.\n\nUsed in the following types:\n- Digest\n- OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "realm",
+          "attribute": "realm",
+          "description": "Server issued realm for Digest authorization.\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "signatureMethod",
+          "attribute": "signatureMethod",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "requestTokenUri",
+          "attribute": "requestTokenUri",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "authTokenMethod",
+          "attribute": "authTokenMethod",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "authParamsLocation",
+          "attribute": "authParamsLocation",
+          "description": "Used by OAuth 1",
+          "type": "string"
+        },
+        {
+          "name": "signatureMethods",
+          "description": "Used by OAuth 1",
+          "type": "string[]"
+        },
+        {
+          "name": "isCustomResponseType",
+          "type": "boolean"
+        },
+        {
+          "name": "clientIdRequired",
+          "type": "boolean"
+        },
+        {
+          "name": "oauth2ClientSecretRendered",
+          "type": "boolean"
+        },
+        {
+          "name": "oauth2AuthorizationUriRendered",
+          "type": "boolean"
+        },
+        {
+          "name": "oauth2AccessTokenUriRendered",
+          "type": "boolean"
+        },
+        {
+          "name": "oauth2PasswordRendered",
+          "type": "boolean"
+        },
+        {
+          "name": "responseType",
+          "attribute": "responseType",
+          "description": "Selected authorization grand type.",
+          "type": "string"
+        },
+        {
+          "name": "clientId",
+          "attribute": "clientId",
+          "description": "The client ID for the auth token.",
+          "type": "string"
+        },
+        {
+          "name": "clientSecret",
+          "attribute": "clientSecret",
+          "description": "The client secret. It to be used when selected server flow.",
+          "type": "string"
+        },
+        {
+          "name": "scopes",
+          "description": "List of user selected scopes.\nIt can be pre-populated with list of scopes (array of strings).",
+          "type": "string[]"
+        },
+        {
+          "name": "allowedScopes",
+          "description": "List of pre-defined scopes to choose from. It will be passed to the `oauth2-scope-selector`\nelement.",
+          "type": "string[]"
+        },
+        {
+          "name": "preventCustomScopes",
+          "attribute": "preventCustomScopes",
+          "description": "If true then the `oauth2-scope-selector` will disallow to add a scope that is not\nin the `allowedScopes` list. Has no effect if the `allowedScopes` is not set.",
+          "type": "boolean"
+        },
+        {
+          "name": "accessToken",
+          "attribute": "accessToken",
+          "description": "When the user authorized the app it should be set to the token value.\nThis element do not perform authorization. Other elements must intercept\nthe token request event and perform the authorization.",
+          "type": "string"
+        },
+        {
+          "name": "tokenType",
+          "attribute": "tokenType",
+          "description": "By default it is \"bearer\" as the only one defined in OAuth 2.0 spec.\nIf the token response contains `tokenType` property then this value is updated.",
+          "type": "string | undefined"
+        },
+        {
+          "name": "responseTypes",
+          "description": "Currently available response types.",
+          "type": "ResponseType[] | undefined"
+        },
+        {
+          "name": "advanced",
+          "attribute": "advanced",
+          "description": "If set it renders authorization url, token url and scopes as advanced options\nwhich are then invisible by default. User can oen setting using the UI.",
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "advancedOpened",
+          "attribute": "advancedOpened",
+          "description": "If true then the advanced options are opened.",
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "noResponseType",
+          "attribute": "noResponseType",
+          "description": "If set, the response type selector is hidden from the UI.",
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "oauthDeliveryMethod",
+          "attribute": "oauthDeliveryMethod",
+          "description": "Informs about what filed of the authenticated request the token property should be set.\nBy default the value is `header` which corresponds to the `authorization` by default,\nbut it is configured by the `deliveryName` property.\n\nThis can be used by the AMF model when the API spec defines where the access token should be\nput in the authenticated request.",
+          "type": "\"header\" | \"query\" | \"body\" | undefined",
+          "default": "\"header\""
+        },
+        {
+          "name": "oauthDeliveryName",
+          "attribute": "oauthDeliveryName",
+          "description": "The name of the authenticated request property that carries the token.\nBy default it is `authorization` which corresponds to `header` value of the `deliveryMethod` property.\n\nBy setting both `deliveryMethod` and `deliveryName` you instruct the application (assuming it reads this values)\nwhere to put the authorization token.",
+          "type": "string | undefined",
+          "default": "\"authorization\""
+        },
+        {
+          "name": "baseUri",
+          "attribute": "baseUri",
+          "description": "The base URI to use to construct the correct URLs to the authorization endpoints.\n\nWhen the paths are relative then base URI is added to the path.\nRelative paths must start with '/'.\n\nNote, URL processing is happening internally in the component. The produced authorize event\nwill have base URI already applied.",
+          "type": "string | undefined"
+        },
+        {
+          "name": "lastErrorMessage",
+          "description": "The error message returned by the authorization library.\nIt renders error dialog when an error ocurred. \nIt is automatically cleared when the user request the token again.",
+          "type": "string | undefined"
+        }
+      ],
+      "events": [
+        {
+          "name": "change",
+          "description": "When authorization state change"
+        }
+      ]
+    }
+  ]
+}
