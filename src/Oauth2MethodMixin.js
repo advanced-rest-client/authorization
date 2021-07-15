@@ -404,6 +404,7 @@ const mxFunction = (base) => {
           detail.redirectUri = this[readUrlValue](this.redirectUri);
           detail.pkce = this.pkce;
           break;
+        case 'application':
         case 'client_credentials':
           // The server flow.
           detail.accessTokenUri = this[readUrlValue](this.accessTokenUri);
