@@ -11,7 +11,7 @@ import '../../authorization-method.js';
 /** @typedef {import('@anypoint-web-components/anypoint-listbox').AnypointListbox} AnypointListbox */
 
 describe('OAuth 2, client credentials method', () => {
-  const grantType = 'client_credentials';
+  const clientCredentialsGrantType = 'client_credentials';
   const inputFields = [
     ['clientId', '821776164331-rserncqpdsq32lmbf5cfeolgcoujb6fm.apps.googleusercontent.com'],
     ['accessTokenUri', 'https://accounts.google.com/o/oauth2/v2/token'],
@@ -22,7 +22,7 @@ describe('OAuth 2, client credentials method', () => {
 
   function createParamsMap() {
     const props = {
-      grantType,
+      grantType: clientCredentialsGrantType,
     };
     inputFields.forEach(([n, v]) => {props[n] = v});
     return props;
@@ -39,10 +39,11 @@ describe('OAuth 2, client credentials method', () => {
       accessTokenUri,
       scopes,
       ccDeliveryMethod,
+      grantType = clientCredentialsGrantType
     } = opts;
     return (fixture(html`<authorization-method
       type="${METHOD_OAUTH2}"
-      grantType="client_credentials"
+      grantType=${grantType}
       .clientId="${clientId}"
       .clientSecret="${clientSecret}"
       .accessTokenUri="${accessTokenUri}"
@@ -286,6 +287,32 @@ describe('OAuth 2, client credentials method', () => {
       await element.authorize();
       const { detail } = handler.args[0][0];
       assert.equal(detail.deliveryMethod, 'header');
+    });
+  });
+
+  describe('application flow', () => {
+    let element = /** @type AuthorizationMethod */ (null);
+
+    beforeEach(async () => {
+      const opts = {
+        grantType: 'application',
+        clientId: '821776164331-rserncqpdsq32lmbf5cfeolgcoujb6fm.apps.googleusercontent.com',
+        accessTokenUri: 'https://accounts.google.com/o/oauth2/v2/token',
+        scopes: ['email', 'profile'],
+        clientSecret: 'cc-secret',
+        ccDeliveryMethod: 'header'
+      }
+      element = await basicFixture(opts);
+    });
+
+    it(`authorization event has credentials when grant_type is application`, async () => {
+      const handler = spy();
+      element.addEventListener(AuthorizationEventTypes.OAuth2.authorize, handler);
+      await element.authorize();
+      const { detail } = handler.args[0][0];
+      assert.equal(detail.grantType, 'application');
+      assert.equal(detail.clientId, '821776164331-rserncqpdsq32lmbf5cfeolgcoujb6fm.apps.googleusercontent.com');
+      assert.equal(detail.clientSecret, 'cc-secret');
     });
   });
 
