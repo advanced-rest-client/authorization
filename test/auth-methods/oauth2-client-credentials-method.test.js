@@ -1,6 +1,5 @@
 import { html, fixture, assert, oneEvent, nextFrame } from '@open-wc/testing';
 import { spy } from 'sinon';
-import { tap } from '@polymer/iron-test-helpers/mock-interactions.js';
 import { AuthorizationEventTypes } from '@advanced-rest-client/arc-events';
 import { METHOD_OAUTH2 } from '../../index.js';
 import '../../authorization-method.js';
@@ -150,8 +149,8 @@ describe('OAuth 2, client credentials method', () => {
       const element = await basicFixture(createParamsMap());
       const section = element.shadowRoot.querySelector('.advanced-section');
       assert.equal(getComputedStyle(section).display, 'none', 'section is hidden');
-      const button = element.shadowRoot.querySelector('.adv-settings-input');
-      tap(button);
+      const button = /** @type HTMLElement */ (element.shadowRoot.querySelector('.adv-settings-input'));
+      button.click();
       await nextFrame();
       assert.equal(getComputedStyle(section).display, 'block', 'section is not hidden');
     });

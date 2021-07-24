@@ -4,7 +4,7 @@ import '@advanced-rest-client/arc-demo-helper/arc-interactive-demo.js';
 import '@anypoint-web-components/anypoint-radio-button/anypoint-radio-button.js';
 import '@anypoint-web-components/anypoint-radio-button/anypoint-radio-group.js';
 import '@anypoint-web-components/anypoint-checkbox/anypoint-checkbox.js';
-import '@advanced-rest-client/oauth-authorization/oauth2-authorization.js';
+import '../oauth2-authorization.js';
 import '../authorization-method.js';
 
 class ComponentDemo extends DemoPage {
@@ -349,7 +349,8 @@ class ComponentDemo extends DemoPage {
       demoState,
       oauth1ChangesCounter,
     } = this;
-    const redirect = 'http://localhost:8001/node_modules/@advanced-rest-client/oauth-authorization/oauth-popup.html';
+    const base = `${window.location.protocol}//${window.location.host}`;
+    const redirect = `${base}/oauth-popup.html`;
     return html`
     <section class="documentation-section">
       <h3>OAuth 1 authentication</h3>

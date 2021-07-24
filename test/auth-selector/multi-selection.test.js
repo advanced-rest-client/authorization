@@ -1,6 +1,5 @@
 import { fixture, assert, html, nextFrame } from '@open-wc/testing';
 import sinon from 'sinon';
-// import * as MockInteractions from '@polymer/iron-test-helpers/mock-interactions.js';
 import '../../authorization-method.js';
 import '../../authorization-selector.js';
 import './custom-method.js';

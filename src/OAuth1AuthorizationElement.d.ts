@@ -367,9 +367,7 @@ declare class OAuth1AuthorizationElement {
 
   /**
    * Performs a HTTP request.
-   * If `proxy` is set or `iron-meta` with a key `auth-proxy` is set then
-   * it will prefix the URL with the value of proxy.
-   *
+   * 
    * @param url An URL to call
    * @param init Init object that will be passed to a `Request`
    * object.

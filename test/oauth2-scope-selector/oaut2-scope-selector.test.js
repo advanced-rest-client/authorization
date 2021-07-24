@@ -1,5 +1,4 @@
 import { fixture, assert, nextFrame, html } from '@open-wc/testing';
-import * as MockInteractions from '@polymer/iron-test-helpers/mock-interactions.js';
 import '../../oauth2-scope-selector.js';
 import { appendScopeHandler, inputTarget, invalidMessage } from '../../src/OAuth2ScopeSelectorElement.js';
 
@@ -75,7 +74,12 @@ describe('<oauth2-scope-selector>', () => {
       const input = element[inputTarget];
       input.value = 'test';
       input.dispatchEvent(new CustomEvent('input'));
-      MockInteractions.keyDownOn(input, 13, [], 'Enter');
+      input.dispatchEvent(new KeyboardEvent('keydown', {
+        code: 'Enter',
+        key: 'Enter',
+        keyCode: 13,
+      }));
+      // MockInteractions.keyDownOn(input, 13, [], 'Enter');
       assert.isArray(element.value, 'value is an array');
       assert.lengthOf(element.value, 1, 'value has 1 item');
     });
@@ -85,7 +89,12 @@ describe('<oauth2-scope-selector>', () => {
       input.value = 'test';
       input.dispatchEvent(new CustomEvent('input'));
       assert.equal(element.currentValue, 'test');
-      MockInteractions.keyDownOn(input, 13, [], 'Enter');
+      input.dispatchEvent(new KeyboardEvent('keydown', {
+        code: 'Enter',
+        key: 'Enter',
+        keyCode: 13,
+      }));
+      // MockInteractions.keyDownOn(input, 13, [], 'Enter');
       assert.equal(element.currentValue, '');
     });
   });
@@ -100,7 +109,12 @@ describe('<oauth2-scope-selector>', () => {
       const input = element[inputTarget];
       input.value = 'test';
       input.dispatchEvent(new CustomEvent('input'));
-      MockInteractions.keyDownOn(input, 13, [], 'Enter');
+      // MockInteractions.keyDownOn(input, 13, [], 'Enter');
+      input.dispatchEvent(new KeyboardEvent('keydown', {
+        code: 'Enter',
+        key: 'Enter',
+        keyCode: 13,
+      }));
       assert.lengthOf(element.value, 1, 'value has 1 item');
     });
 
@@ -108,7 +122,12 @@ describe('<oauth2-scope-selector>', () => {
       const input = element[inputTarget];
       input.value = 'tes';
       input.dispatchEvent(new CustomEvent('input'));
-      MockInteractions.keyDownOn(input, 13, [], 'Enter');
+      input.dispatchEvent(new KeyboardEvent('keydown', {
+        code: 'Enter',
+        key: 'Enter',
+        keyCode: 13,
+      }));
+      // MockInteractions.keyDownOn(input, 13, [], 'Enter');
       assert.lengthOf(element.value, 0);
     });
   });
@@ -175,8 +194,8 @@ describe('<oauth2-scope-selector>', () => {
   describe('[removeScopeHandler]()', () => {
     it('Removes the scope', async () => {
       const element = await valuesFixture();
-      const button = element.shadowRoot.querySelector('[data-action="remove-scope"]');
-      MockInteractions.tap(button);
+      const button = /** @type HTMLElement */ (element.shadowRoot.querySelector('[data-action="remove-scope"]'));
+      button.click();
       assert.lengthOf(element.value, 1);
     });
   });
@@ -191,15 +210,25 @@ describe('<oauth2-scope-selector>', () => {
       const input = element[inputTarget];
       input.value = 'test-label';
       input.dispatchEvent(new CustomEvent('input'));
-      MockInteractions.keyDownOn(input, 13, [], 'Enter');
+      // MockInteractions.keyDownOn(input, 13, [], 'Enter');
+      input.dispatchEvent(new KeyboardEvent('keydown', {
+        code: 'Enter',
+        key: 'Enter',
+        keyCode: 13,
+      }));
       assert.lengthOf(element.value, 1, 'value has 1 item');
     });
 
-    it('Do not accepts disallowed scope', () => {
+    it('does not accept disallowed scope', () => {
       const input = element[inputTarget];
       input.value = 'test';
       input.dispatchEvent(new CustomEvent('input'));
-      MockInteractions.keyDownOn(input, 13, [], 'Enter');
+      // MockInteractions.keyDownOn(input, 13, [], 'Enter');
+      input.dispatchEvent(new KeyboardEvent('keydown', {
+        code: 'Enter',
+        key: 'Enter',
+        keyCode: 13,
+      }));
       assert.lengthOf(element.value, 0);
     });
   });
@@ -261,8 +290,8 @@ describe('<oauth2-scope-selector>', () => {
 
     it('is invalid when removing the value', async () => {
       const element = await autoValidateValueFixture();
-      const button = element.shadowRoot.querySelector('[data-action="remove-scope"]');
-      MockInteractions.tap(button);
+      const button = /** @type HTMLElement */ (element.shadowRoot.querySelector('[data-action="remove-scope"]'));
+      button.click();
       await nextFrame();
       assert.isTrue(element.invalid);
     });

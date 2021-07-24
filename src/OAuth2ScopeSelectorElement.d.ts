@@ -84,25 +84,6 @@ export declare interface AllowedScope {
  * ```
  *
  * See demo page for example implementation.
- *
- * ## Use with forms
- *
- * The element can be used in a form by using `iron-form` custom element.
- * It's value is reported to the form as any other form input. `name` attribute
- * must be set in order to process the value.
- *
- * ```html
- * <iron-form id="form">
- *   <form>
- *     <oauth2-scope-selector name="scope" required></oauth2-scope-selector>
- *   </form>
- * </iron-form>
- * <script>
- * const form = document.getElementById('form');
- * const values = form.serializeForm();
- * console.log(values); // {"scope": []}
- * </script>
- * ```
  * 
  * @fires change When the scopes list changed. Non bubbling.
  * @fires invalidchange When the invalid value change. Non bubbling.

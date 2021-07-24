@@ -8,7 +8,6 @@ import '@anypoint-web-components/anypoint-listbox/anypoint-listbox.js';
 import '@anypoint-web-components/anypoint-item/anypoint-item.js';
 import '@anypoint-web-components/anypoint-button/anypoint-button.js';
 import '@advanced-rest-client/clipboard-copy/clipboard-copy.js';
-import '@polymer/paper-spinner/paper-spinner.js';
 
 /* eslint-disable class-methods-use-this */
 

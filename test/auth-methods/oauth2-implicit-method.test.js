@@ -1,7 +1,6 @@
 /* eslint-disable no-shadow */
 import { html, fixture, assert, oneEvent, nextFrame, aTimeout } from '@open-wc/testing';
 import { spy } from 'sinon';
-import { tap, focus } from '@polymer/iron-test-helpers/mock-interactions.js';
 import { AuthorizationEventTypes } from '@advanced-rest-client/arc-events';
 import { METHOD_OAUTH2 } from '../../index.js';
 import '../../authorization-method.js';
@@ -156,8 +155,8 @@ describe('OAuth 2, implicit method', () => {
       const element = await basicFixture(createParamsMap());
       const section = element.shadowRoot.querySelector('.advanced-section');
       assert.equal(getComputedStyle(section).display, 'none', 'section is hidden');
-      const button = element.shadowRoot.querySelector('.adv-settings-input');
-      tap(button);
+      const button = /** @type HTMLElement */ (element.shadowRoot.querySelector('.adv-settings-input'));
+      button.click();
       await nextFrame();
       assert.equal(getComputedStyle(section).display, 'block', 'section is not hidden');
     });
@@ -334,17 +333,17 @@ describe('OAuth 2, implicit method', () => {
     });
 
     it('calls authorize() from button click', () => {
-      const button = element.shadowRoot.querySelector('.auth-button');
+      const button = /** @type HTMLElement */ (element.shadowRoot.querySelector('.auth-button'));
       const handler = spy();
       element.addEventListener(AuthorizationEventTypes.OAuth2.authorize, handler);
-      tap(button);
+      button.click();
       assert.isTrue(handler.called);
     });
 
     it('sets #authorizing flag', () => {
       mockTokenRequest();
-      const button = element.shadowRoot.querySelector('.auth-button');
-      tap(button);
+      const button = /** @type HTMLElement */ (element.shadowRoot.querySelector('.auth-button'));
+      button.click();
       assert.isTrue(element.authorizing);
     });
 
@@ -482,7 +481,7 @@ describe('OAuth 2, implicit method', () => {
     it('copies redirect URL to clipboard', () => {
       const node = element.shadowRoot.querySelector('.redirect-section');
       const label = /** @type HTMLElement */ (node.querySelector('.code'));
-      tap(label);
+      label.click();
       assert.equal(copy.content, label.innerText);
     });
 
@@ -491,15 +490,15 @@ describe('OAuth 2, implicit method', () => {
       element.accessToken = tokenValue;
       await nextFrame();
       const node = element.shadowRoot.querySelector('.current-token');
-      const label = node.querySelector('.code');
-      tap(label);
+      const label = /** @type HTMLElement */ (node.querySelector('.code'));
+      label.click();
       assert.equal(copy.content, tokenValue);
     });
 
     it('makes text selection from click', async () => {
       const node = element.shadowRoot.querySelector('.redirect-section');
-      const label = node.querySelector('.code');
-      tap(label);
+      const label = /** @type HTMLElement */ (node.querySelector('.code'));
+      label.click();
       await aTimeout(0);
       const selection = window.getSelection();
       assert.ok(selection.anchorNode);
@@ -507,8 +506,8 @@ describe('OAuth 2, implicit method', () => {
 
     it('makes text selection from focus', () => {
       const node = element.shadowRoot.querySelector('.redirect-section');
-      const label = node.querySelector('.code');
-      focus(label);
+      const label = /** @type HTMLElement */ (node.querySelector('.code'));
+      label.focus();
       const selection = window.getSelection();
       assert.ok(selection.anchorNode);
     });

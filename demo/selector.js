@@ -1,16 +1,16 @@
 import { html } from 'lit-element';
 import { DemoPage } from '@advanced-rest-client/arc-demo-helper';
 import '@advanced-rest-client/arc-demo-helper/arc-interactive-demo.js';
-import '@advanced-rest-client/oauth-authorization/oauth2-authorization.js';
 import '@anypoint-web-components/anypoint-button/anypoint-button.js';
 import '@anypoint-web-components/anypoint-checkbox/anypoint-checkbox.js'
 import '../authorization-selector.js';
 import '../authorization-method.js';
+import '../oauth2-authorization.js';
 import './custom-method.js';
 
 /** @typedef {import('@advanced-rest-client/arc-types').ArcRequest.RequestAuthorization} RequestAuthorization */
 /** @typedef {import('../').AuthorizationSelectorElement} AuthorizationSelectorElement */
-/** @typedef {import('../').AuthorizationMethod} AuthorizationMethod */
+/** @typedef {import('../').AuthorizationMethodElement} AuthorizationMethodElement */
 
 
 const STORE_KEY = 'demo.auth-selector.config';
@@ -49,7 +49,7 @@ class ComponentDemoPage extends DemoPage {
       'profile',
       'email'
     ];
-    this.oauth1redirect = `${base}/node_modules/@advanced-rest-client/oauth-authorization/oauth-popup.html`;
+    this.oauth1redirect = `${base}/oauth-popup.html`;
 
     this._demoStateHandler = this._demoStateHandler.bind(this);
     this._toggleMainOption = this._toggleMainOption.bind(this);
@@ -107,7 +107,7 @@ class ComponentDemoPage extends DemoPage {
     this.changeCounter++;
     const selector = /** @type AuthorizationSelectorElement */ (e.target);
     const { selected, type, multi } = selector;
-    const methods = /** @type AuthorizationMethod[] */ (selector.items);
+    const methods = /** @type AuthorizationMethodElement[] */ (selector.items);
     const result = /** @type RequestAuthorization[] */ ([]);
     this.enabled = [];
     methods.forEach((authMethod, index) => {
@@ -121,6 +121,7 @@ class ComponentDemoPage extends DemoPage {
         config,
         type: mType,
         enabled,
+        valid: true,
       });
     });
     // console.log(result);

@@ -682,7 +682,7 @@ const mxFunction = (base) => {
             @click="${this.authorize}"
             >Authorize</anypoint-button
           >
-          <paper-spinner ?active="${_authorizing}"></paper-spinner>
+          ${_authorizing ? html`<progress></progress>` : ''}
         </div>`;
     }
   }

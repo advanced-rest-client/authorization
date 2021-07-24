@@ -1,6 +1,5 @@
 import { html, fixture, assert, oneEvent, nextFrame } from '@open-wc/testing';
 import { spy } from 'sinon';
-import { tap } from '@polymer/iron-test-helpers/mock-interactions.js';
 import { validateInput } from './TestUtils.js';
 import { METHOD_OAUTH1 } from '../../index.js';
 import '../../authorization-method.js';
@@ -184,7 +183,7 @@ describe('OAuth 1 method', () => {
       const button = input.querySelector('anypoint-icon-button');
       const handler = spy();
       element.addEventListener('change', handler);
-      tap(button);
+      button.click();
       assert.isTrue(handler.called);
     });
 
@@ -193,7 +192,7 @@ describe('OAuth 1 method', () => {
       const button = input.querySelector('anypoint-icon-button');
       const handler = spy();
       element.addEventListener('change', handler);
-      tap(button);
+      button.click();
       assert.isTrue(handler.called);
     });
   });
@@ -291,16 +290,16 @@ describe('OAuth 1 method', () => {
     });
 
     it('calls authorize() from button click', () => {
-      const button = element.shadowRoot.querySelector('.auth-button');
+      const button = /** @type HTMLElement */ (element.shadowRoot.querySelector('.auth-button'));
       const handler = spy();
       element.addEventListener('oauth1-token-requested', handler);
-      tap(button);
+      button.click();
       assert.isTrue(handler.called);
     });
 
     it('sets #authorizing flag', () => {
-      const button = element.shadowRoot.querySelector('.auth-button');
-      tap(button);
+      const button = /** @type HTMLElement */ (element.shadowRoot.querySelector('.auth-button'));
+      button.click();
       assert.isTrue(element.authorizing);
     });
 

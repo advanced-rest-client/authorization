@@ -1,6 +1,5 @@
 import { fixture, assert, html, nextFrame } from '@open-wc/testing';
 import sinon from 'sinon';
-import * as MockInteractions from '@polymer/iron-test-helpers/mock-interactions.js';
 import '../../authorization-method.js';
 import '../../authorization-selector.js';
 import './custom-method.js';
@@ -129,7 +128,7 @@ describe('authorization-selector', () => {
   describe('Children rendering', () => {
     it('renders no authorization method when no selection', async () => {
       const element = await methodsFixture();
-      const nodes = element.querySelector('authorization-method');
+      const nodes = element.querySelectorAll('authorization-method');
       const node = Array.from(nodes).some((n) => !n.hasAttribute('hidden'));
       assert.notOk(node, 'all nodes are hidden');
     });
@@ -157,15 +156,15 @@ describe('authorization-selector', () => {
   describe('Selection management', () => {
     it('changes selection when dropdown item is selected', async () => {
       const element = await methodsFixture();
-      const option = element.shadowRoot.querySelector('anypoint-item[data-label="Basic"]');
-      MockInteractions.tap(option);
+      const option = /** @type HTMLElement */ (element.shadowRoot.querySelector('anypoint-item[data-label="Basic"]'));
+      option.click();
       assert.equal(element.selected, 0);
     });
 
     it('changes selection when dropdown item is selected for attrforselected', async () => {
       const element = await attrForSelectedFixture();
-      const option = element.shadowRoot.querySelector('anypoint-item[data-label="Basic"]');
-      MockInteractions.tap(option);
+      const option = /** @type HTMLElement */ (element.shadowRoot.querySelector('anypoint-item[data-label="Basic"]'));
+      option.click();
       assert.equal(element.selected, 'basic');
     });
 
@@ -453,8 +452,8 @@ describe('authorization-selector', () => {
       const element = await methodsFixture();
       const spy = sinon.spy();
       element.addEventListener('change', spy);
-      const option = element.shadowRoot.querySelector('anypoint-item[data-label="Basic"]');
-      MockInteractions.tap(option);
+      const option = /** @type HTMLElement */ (element.shadowRoot.querySelector('anypoint-item[data-label="Basic"]'));
+      option.click();
       assert.isTrue(spy.called);
     });
 
