@@ -90,3 +90,9 @@ export function base64Buffer(buffer: ArrayBuffer): string;
  * @returns The code challenge string
  */
 export function generateCodeChallenge(verifier: string): Promise<string>;
+
+/**
+ * @param value The value to validate
+ * @returns True if the redirect URI can be considered valid.
+ */
+export function validateRedirectUri(value: string): boolean;

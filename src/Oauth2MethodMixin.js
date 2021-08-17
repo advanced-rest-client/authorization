@@ -6,20 +6,24 @@ import '@anypoint-web-components/anypoint-switch/anypoint-switch.js';
 import '@anypoint-web-components/anypoint-checkbox/anypoint-checkbox.js';
 import '@anypoint-web-components/anypoint-listbox/anypoint-listbox.js';
 import '@advanced-rest-client/clipboard-copy/clipboard-copy.js';
-import { notifyChange, selectionHandler, inputHandler, CUSTOM_CREDENTIALS } from './Utils.js';
+import '@anypoint-web-components/anypoint-button/anypoint-icon-button.js';
+import '@advanced-rest-client/arc-icons/arc-icon.js';
+import { notifyChange, selectionHandler, inputHandler, CUSTOM_CREDENTIALS, validateRedirectUri } from './Utils.js';
 import { passwordTemplate, inputTemplate } from './CommonTemplates.js';
 import '../oauth2-scope-selector.js';
 
-/** @typedef {import('./AuthorizationMethodElement').default} AuthorizationMethod */
-/** @typedef {import('./Oauth2MethodMixin').GrantType} GrantType */
+/** @typedef {import('lit-element').TemplateResult} TemplateResult */
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OAuth2Authorization} OAuth2Authorization */
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OAuth2DeliveryMethod} OAuth2DeliveryMethod */
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.TokenInfo} TokenInfo */
-/** @typedef {import('../').OAuth2ScopeSelectorElement} OAuth2ScopeSelectorElement */
 /** @typedef {import('@advanced-rest-client/clipboard-copy').ClipboardCopyElement} ClipboardCopyElement */
 /** @typedef {import('@anypoint-web-components/anypoint-listbox').AnypointListbox} AnypointListbox */
-/** @typedef {import('lit-element').TemplateResult} TemplateResult */
 /** @typedef {import('@anypoint-web-components/anypoint-checkbox').AnypointCheckbox} AnypointCheckbox */
+/** @typedef {import('./AuthorizationMethodElement').default} AuthorizationMethod */
+/** @typedef {import('./Oauth2MethodMixin').GrantType} GrantType */
+/** @typedef {import('./types').Oauth2Credentials} Oauth2Credentials */
+/** @typedef {import('./types').CredentialsInfo} CredentialsInfo */
+/** @typedef {import('../').OAuth2ScopeSelectorElement} OAuth2ScopeSelectorElement */
 
 /* eslint-disable no-plusplus */
 /* eslint-disable prefer-destructuring */
@@ -56,11 +60,20 @@ export const pkceTemplate = Symbol('pkceTemplate');
 export const pkceChangeHandler = Symbol('pkceChangeHandler');
 export const paramsLocationTemplate = Symbol('paramsLocationTemplate');
 export const grantTypeSelectionHandler = Symbol('grantTypeSelectionHandler');
-const credentialSourceHandler = Symbol('credentialSourceHandler');
-const updateClientCredentials = Symbol('updateClientCredentials');
-const updateCredentials = Symbol('updateCredentials');
-const listCredentials = Symbol('listCredentials');
-const isSourceSelected = Symbol('isSourceSelected');
+export const editRedirectUriTemplate = Symbol('editRedirectUriTemplate');
+export const editRedirectUriHandler = Symbol('editRedirectUriHandler');
+export const editingRedirectUri = Symbol('editingRedirectUri');
+export const redirectUriContentTemplate = Symbol('redirectUriContentTemplate');
+export const redirectUriInputTemplate = Symbol('redirectUriInputTemplate');
+export const redirectInputBlur = Symbol('redirectInputBlur');
+export const redirectInputKeydown = Symbol('redirectInputKeydown');
+export const commitRedirectUri = Symbol('commitRedirectUri');
+export const cancelRedirectUri = Symbol('cancelRedirectUri');
+export const credentialSourceHandler = Symbol('credentialSourceHandler');
+export const updateClientCredentials = Symbol('updateClientCredentials');
+export const updateCredentials = Symbol('updateCredentials');
+export const listCredentials = Symbol('listCredentials');
+export const isSourceSelected = Symbol('isSourceSelected');
 
 /**
  * List of OAuth 2.0 default response types.
@@ -88,6 +101,9 @@ export const oauth2GrantTypes = [
   },
 ];
 
+/**
+ * @param {Element} node
+ */
 const makeNodeSelection = (node) => {
   const body = /** @type {HTMLBodyElement} */ (document.body);
   /* istanbul ignore if */
@@ -301,13 +317,19 @@ const mxFunction = (base) => {
          */
         pkce: { type: Boolean },
         /**
-         * List of credentials source
+         * The definition of client credentials to be rendered for a given grant type.
+         * When set on the editor it renders a drop down where the user can choose from predefined
+         * credentials (client id & secret).
          */
         credentialsSource: { type: Array },
         /**
          * Selected credential source
          */
         credentialSource: { type: String },
+        /** 
+         * When set it allows to edit the redirect URI by the user.
+         */
+        allowRedirectUriChange: { type: Boolean },
       };
     }
 
@@ -320,6 +342,8 @@ const mxFunction = (base) => {
       this.noGrantType = false;
       this.noPkce = false;
       this.pkce = false;
+      this.allowRedirectUriChange = false;
+      this[editingRedirectUri] = false;
       /** 
        * @type {OAuth2DeliveryMethod}
        */
@@ -631,31 +655,232 @@ const mxFunction = (base) => {
     }
 
     /**
+     * A handler for the edit redirect URI button click.
+     * Sets the editing flag and requests the update.
+     */
+    async [editRedirectUriHandler]() {
+      this[editingRedirectUri] = true;
+      await this.requestUpdate();
+      const input = /** @type HTMLElement */ (this.shadowRoot.querySelector('.redirect-input'));
+      if (input) {
+        input.focus();
+      }
+    }
+
+    /**
+     * Commits the redirect URI editor value on enter key or cancels on escape.
+     * @param {KeyboardEvent} e
+     */
+    [redirectInputKeydown](e) {
+      if (['Enter', 'NumpadEnter'].includes(e.code)) {
+        const node = /** @type HTMLInputElement */ (e.target);
+        this[commitRedirectUri](node.value);
+      } else if (e.code === 'Escape') {
+        this[cancelRedirectUri]();
+      }
+    }
+
+    /**
+     * Commits the redirect URI editor value on input blur.
+     * @param {Event} e
+     */
+    [redirectInputBlur](e) {
+      const node = /** @type HTMLInputElement */ (e.target);
+      this[commitRedirectUri](node.value);
+    }
+
+    /**
+     * Sets the new redirect URI if the value passes validation.
+     * This closes the editor.
+     * @param {string} value The new value to set.
+     */
+    [commitRedirectUri](value) {
+      if (!this[editingRedirectUri]) {
+        // this is needed to make sure the value won't change on escape key press
+        // via the blur event
+        return;
+      }
+      const old = this.redirectUri;
+      let isValid = validateRedirectUri(value);
+      if (isValid && old === value) {
+        isValid = false;
+      }
+      if (isValid) {
+        this.redirectUri = value;
+        notifyChange(this);
+      }
+      this[cancelRedirectUri]();
+    }
+
+    /**
+     * Resets the redirect URI edit flag and requests an update.
+     */
+    [cancelRedirectUri]() {
+      this[editingRedirectUri] = false;
+      this.requestUpdate();
+    }
+
+    /**
+     * @return {CredentialsInfo[]} The list of client credentials to render in the credentials selector.
+     */
+    [listCredentials]() {
+      const { credentialsSource, grantType } =  this;
+      /** @type CredentialsInfo[] */
+      let credentials = [];
+      if (credentialsSource && credentialsSource.length > 0) {
+        const grantTypeCredentials = credentialsSource.find(s => s.grantType === grantType);
+        if (grantTypeCredentials) {
+          const customCredential = { name: CUSTOM_CREDENTIALS };
+          credentials = [customCredential].concat(grantTypeCredentials.credentials)
+        }
+      }
+      return credentials;
+    }
+
+    /**
+     * Sets the client credentials after updating them from the credentials source selector.
+     * @param {string} clientId The client id to set on the editor.
+     * @param {string} clientSecret The client secret to set on the editor.
+     * @param {boolean} disabled Whether the credentials input is disabled.
+     */
+    [updateCredentials](clientId, clientSecret, disabled) {
+      this.clientId = clientId;
+      this.clientSecret = clientSecret;
+      this.credentialsDisabled = disabled
+    }
+
+    /**
+     * This triggers change in the client id & secret of the editor after selecting 
+     * a credentials source by the user.
+     * 
+     * @param {string} selectedSource The name of the selected credentials source to select.
+     */
+    [updateClientCredentials](selectedSource) {
+      const { credentialsSource } = this;
+      if (!credentialsSource) {
+        return;
+      }
+      if (selectedSource) {
+        const credentials = this[listCredentials]();
+        const credential = credentials.find(c => c.name === selectedSource);
+        if (credential) {
+          this[updateCredentials](credential.clientId, credential.clientSecret, credential.name !== CUSTOM_CREDENTIALS)
+        }
+      } else {
+        this[updateCredentials]('', '', true);
+      }
+    }
+
+    /**
+     * @param {Event} e 
+     */
+    [grantTypeSelectionHandler](e) {
+      const { selected } = /** @type AnypointListbox */ (e.target);
+      const { grantType, credentialSource } = this;
+      if (grantType !== selected && credentialSource) {
+        this.credentialSource = undefined;
+        this.credentialsDisabled = this.disabled;
+      }
+      this[selectionHandler](e);
+    }
+
+    /**
+     * @param {Event} e 
+     */
+    [credentialSourceHandler](e) {
+      const { selected } = /** @type AnypointListbox */ (e.target);
+      this[updateClientCredentials](/** @type string */(selected));
+      this[selectionHandler](e);
+    }
+
+    /**
+     * @returns {boolean} true when a credentials source is being selected.
+     */
+    [isSourceSelected]() {
+      const { credentialSource } = this;
+      const credentials = this[listCredentials]();
+      if (credentials.length > 0) {
+        if (!credentialSource) {
+          return false;
+        }
+      }
+      return true
+    }
+
+    /**
      * @returns {TemplateResult|string} The template for the OAuth 2 redirect URI label
      */
     [oauth2RedirectTemplate]() {
-      const { redirectUri, hasRedirectUri } = this;
+      const { hasRedirectUri } = this;
       if (!hasRedirectUri) {
         return '';
       }
+      const editing = this.allowRedirectUriChange && this[editingRedirectUri];
       return html`
       <div class="subtitle">Redirect URI</div>
       <section>
         <div class="redirect-section">
-          <p class="redirect-info">
-            Set this redirect URI in OAuth 2.0 provider settings.
-          </p>
-          <p class="read-only-param-field padding">
-            <span
-              class="code"
-              @click="${this[clickCopyAction]}"
-              @focus="${selectFocusable}"
-              title="Click to copy the URI"
-              tabindex="0"
-            >${redirectUri}</span>
-          </p>
+          ${editing ? this[redirectUriInputTemplate]() : this[redirectUriContentTemplate]()}
         </div>
       </section>
+      `;
+    }
+
+    /**
+     * @returns {TemplateResult} The template for the OAuth 2 redirect URI content
+     */
+    [redirectUriContentTemplate]() {
+      const { redirectUri } = this;
+      return html`
+      <p class="read-only-param-field padding">
+        <span
+          class="code"
+          @click="${this[clickCopyAction]}"
+          @focus="${selectFocusable}"
+          title="Click to copy the URI"
+          tabindex="0"
+        >${redirectUri}</span>
+        ${this[editRedirectUriTemplate]()}
+      </p>
+      `;
+    }
+
+    /**
+     * @returns {TemplateResult} The template for the OAuth 2 redirect URI input
+     */
+    [redirectUriInputTemplate]() {
+      const { redirectUri } = this;
+      return html`
+      <anypoint-input 
+        class="redirect-input" 
+        .value="${redirectUri}"
+        @blur="${this[redirectInputBlur]}"
+        @keydown="${this[redirectInputKeydown]}"
+        required
+        autoValidate
+        type="url"
+      >
+        <label slot="label">Redirect URI value</label>
+      </anypoint-input>
+      `;
+    }
+
+    /**
+     * @return {TemplateResult|string} The template for the edit redirect URI button, when enabled.
+     */
+    [editRedirectUriTemplate]() {
+      const { allowRedirectUriChange } = this;
+      if (!allowRedirectUriChange) {
+        return '';
+      }
+      return html`
+      <anypoint-icon-button
+        title="Edit the redirect URI"
+        class="edit-rdr-uri"
+        @click="${this[editRedirectUriHandler]}"
+      >
+        <arc-icon icon="edit"></arc-icon>
+      </anypoint-icon-button>
       `;
     }
 
@@ -768,81 +993,9 @@ const mxFunction = (base) => {
       </div>`;
     }
 
-    [listCredentials]() {
-      const {credentialsSource, grantType} =  this;
-      let credentials = [];
-
-      if (credentialsSource && credentialsSource.length > 0) {
-        const grantTypeCredentials = credentialsSource.find(s => s.grantType === grantType);
-        if (grantTypeCredentials) {
-          const customCredential = { name: CUSTOM_CREDENTIALS };
-          credentials = [customCredential].concat(grantTypeCredentials.credentials)
-        }
-      }
-
-      return credentials
-    };
-
-    [updateCredentials](clientId, clientSecret, disabled) {
-      this.clientId = clientId;
-      this.clientSecret = clientSecret;
-      this.credentialsDisabled = disabled
-    }
-
-    [updateClientCredentials](selectedSource) {
-      const {clientId, clientSecret, credentialsDisabled, credentialsSource} = this;
-
-      if (credentialsSource){
-        if (selectedSource) {
-          const credentials = this[listCredentials]();
-          const credential = credentials.find(c => c.name === selectedSource);
-          if (credential) {
-            this[updateCredentials](credential.clientId, credential.clientSecret, credential.name !== CUSTOM_CREDENTIALS)
-          }
-        } else {
-          this[updateCredentials]('', '', true);
-        }
-      }
-
-      return {clientId, clientSecret, credentialsDisabled}
-    };
-
     /**
-     * @param {Event} e 
+     * @return {TemplateResult|string} The template for the client credentials source.
      */
-    [grantTypeSelectionHandler](e) {
-      const { selected } = /** @type AnypointListbox */ (e.target);
-      const { grantType, credentialSource } = this;
-      if (grantType !== selected && credentialSource) {
-        this.credentialSource = undefined;
-        this.credentialsDisabled = this.disabled;
-      }
-
-      this[selectionHandler](e);
-    }
-
-    /**
-     * @param {Event} e 
-     */
-    [credentialSourceHandler](e) {
-      const { selected } = /** @type AnypointListbox */ (e.target);
-      this[updateClientCredentials](selected);
-      this[selectionHandler](e);
-    }
-
-    [isSourceSelected]() {
-      const { credentialSource } = this;
-
-      const credentials = this[listCredentials]();
-      if (credentials.length > 0) {
-        if (!credentialSource) {
-          return false;
-        }
-      }
-
-      return true
-    }
-
     [credentialsSourceTemplate]() {
       const {
         outlined,
@@ -1134,6 +1287,13 @@ const mxFunction = (base) => {
       `;
     }
 
+    /**
+     * For client_credentials grant this renders the dropdown with an option to select
+     * where the credentials should be used. Current values: 
+     * - authorization header
+     * - message body
+     * @return {TemplateResult|string} 
+     */
     [paramsLocationTemplate]() {
       const { grantType } = this;
       if (grantType !== 'client_credentials') {

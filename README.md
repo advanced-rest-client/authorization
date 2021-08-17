@@ -113,6 +113,30 @@ support different OAuth clients so you can check later with the token response i
 For `implicit` and `authorization_code` token requests you can set the `interactive` configuration property to `false` to request the token in the background without rendering any UI related to authorization to the user.
 It can be used to request an access token after the user authorized the application. Server should return the token which will be passed back to the application.
 
+#### Pre-defined client credentials
+
+For user convenience in a test environment (like testing or documentation tools) we can define a list of client credentials (client id and client secret) that are rendered in the OAuth 2 editor in a drop down selector.
+This way a user can choose to use one of these credentials instead providing them manually.
+
+```javascript
+const credentialsSource = [{
+  grantType: 'client_credentials', 
+  credentials: [
+    {
+      name: 'My social Network', 
+      clientId: '123', 
+      clientSecret: 'xyz'
+    }, {
+      name: 'My social Network 2', 
+      clientId: '9876', 
+      clientSecret: 'abc'
+    }
+  ]
+}];
+const editor = document.querySelector('authorization-method[oauth 2]');
+editor.credentialsSource = credentialsSource;
+```
+
 ## Development
 
 ```sh

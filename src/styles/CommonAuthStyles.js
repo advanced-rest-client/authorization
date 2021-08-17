@@ -124,12 +124,11 @@ export default css`
       --authorization-method-oauth2-redirect-info-background-color,
       rgba(0, 0, 0, 0.12)
     );
-    display: block;
-    white-space: pre-wrap;
     word-wrap: break-word;
     word-break: break-all;
     display: flex;
     flex-direction: row;
+    align-items: center;
   }
 
   .read-only-param-field.padding {
@@ -138,5 +137,9 @@ export default css`
 
   .error-message {
     color: var(--error-color);
+  }
+
+  .delivery-dropdown {
+    margin: 16px 0;
   }
 `;

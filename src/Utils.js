@@ -35,6 +35,8 @@ export const inputHandler = Symbol("inputHandler");
 
 /**
  * Checks if the URL has valid scheme for OAuth flow.
+ * 
+ * Do not use this to validate redirect URIs as they can use any protocol.
  *
  * @param {string} url The url value to test
  * @throws {TypeError} When passed value is not set, empty, or not a string
@@ -142,4 +144,23 @@ export function base64Buffer(buffer) {
 export async function generateCodeChallenge(verifier) {
   const hashed = await sha256(verifier);
   return base64Buffer(hashed);
+}
+
+/**
+ * @param {string} value The value to validate
+ * @returns {boolean} True if the redirect URI can be considered valid.
+ */
+export function validateRedirectUri(value) {
+  let result = true;
+  if (!value || typeof value !== 'string') {
+    result = false;
+  }
+  // the redirect URI can have any value, especially for installed apps which 
+  // may use custom schemes. We do vary basic sanity check for any script content 
+  // validation to make sure we are not passing any script.
+  // eslint-disable-next-line no-script-url
+  if (result && value.includes('javascript:')) {
+    result = false;
+  }
+  return result;
 }

@@ -24,10 +24,12 @@ class ComponentDemo extends DemoPage {
       'oauth2ChangesCounter',
       'oauth2BaseUriEnabled',
       'credentialsSource',
+      'allowRedirectUriChange'
     ]);
     this.componentName = 'authorization-method';
     this.darkThemeActive = false;
     this.oauth2BaseUriEnabled = false;
+    this.allowRedirectUriChange = false;
     this.demoStates = ['Filled', 'Outlined', 'Anypoint'];
     this.demoState = 0;
     this.authType = 'basic';
@@ -394,7 +396,8 @@ class ComponentDemo extends DemoPage {
       authorizationUri,
       oauth2scopes,
       oauth2BaseUriEnabled,
-      credentialsSource
+      credentialsSource,
+      allowRedirectUriChange,
     } = this;
     const baseUri = oauth2BaseUriEnabled ? 'https://api.domain.com/auth/' : undefined;
     return html`
@@ -417,6 +420,7 @@ class ComponentDemo extends DemoPage {
           clientId="test-client-id"
           grantType="authorization_code"
           pkce
+          ?allowRedirectUriChange="${allowRedirectUriChange}"
           .credentialsSource="${credentialsSource}"
           .baseUri="${baseUri}"
           .scopes="${oauth2scopes}"
@@ -429,6 +433,11 @@ class ComponentDemo extends DemoPage {
           slot="options"
           name="oauth2BaseUriEnabled"
           @change="${this._toggleMainOption}">Add base URI</anypoint-checkbox>
+        <anypoint-checkbox
+          aria-describedby="mainOptionsLabel"
+          slot="options"
+          name="allowRedirectUriChange"
+          @change="${this._toggleMainOption}">Allow redirect URI change</anypoint-checkbox>
       </arc-interactive-demo>
       <p>Change events counter: ${oauth2ChangesCounter}</p>
     </section>

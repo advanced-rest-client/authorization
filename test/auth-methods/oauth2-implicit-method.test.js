@@ -5,6 +5,8 @@ import { AuthorizationEventTypes } from '@advanced-rest-client/arc-events';
 import { METHOD_OAUTH2 } from '../../index.js';
 import '../../authorization-method.js';
 import {
+  commitRedirectUri,
+  editingRedirectUri,
   oauth2GrantTypes,
   setOauth2Defaults
 } from '../../src/Oauth2MethodMixin.js';
@@ -43,6 +45,7 @@ describe('OAuth 2, implicit method', () => {
       authorizationUri,
       redirectUri,
       scopes,
+      allowRedirectUriChange=false,
     } = opts;
     return (fixture(html`<authorization-method
       type="${METHOD_OAUTH2}"
@@ -50,7 +53,8 @@ describe('OAuth 2, implicit method', () => {
       .clientId="${clientId}"
       .authorizationUri="${authorizationUri}"
       .redirectUri="${redirectUri}"
-      .scopes="${scopes}"></authorization-method>`));
+      .scopes="${scopes}"
+      ?allowRedirectUriChange="${allowRedirectUriChange}"></authorization-method>`));
   }
 
   /**
@@ -104,6 +108,25 @@ describe('OAuth 2, implicit method', () => {
       assert.ok(node);
       const label = node.querySelector('.code');
       assert.equal(label.textContent.trim(), redirectUri);
+    });
+
+    it('does not render edit redirect URI button', async () => {
+      element.redirectUri = redirectUri;
+      await nextFrame();
+      const node = element.shadowRoot.querySelector('.redirect-section');
+      assert.ok(node);
+      const button = node.querySelector('.edit-rdr-uri');
+      assert.notOk(button);
+    });
+
+    it('renders the edit button for the redirect uri', async () => {
+      element.redirectUri = redirectUri;
+      element.allowRedirectUriChange = true;
+      await nextFrame();
+      const node = element.shadowRoot.querySelector('.redirect-section');
+      assert.ok(node);
+      const button = node.querySelector('.edit-rdr-uri');
+      assert.ok(button);
     });
 
     it('does not render token section when no token information', () => {
@@ -541,6 +564,135 @@ describe('OAuth 2, implicit method', () => {
       const element = await baseUriFixture(baseUri, createParamsMap());
       const node = /** @type AnypointInput */ (element.shadowRoot.querySelector('[name="authorizationUri"]'));
       assert.equal(node.type, 'string');
+    });
+  });
+
+  describe('editing oauth 2 redirect URI', () => {
+    /** @type AuthorizationMethod */
+    let element;
+    beforeEach(async () => {
+      const opts = createParamsMap();
+      opts.allowRedirectUriChange = true;
+      element = await basicFixture(opts);
+    });
+
+    /**
+     * @param {AuthorizationMethod} editor
+     */
+    async function enableEditor(editor) {
+      const node = /** @type HTMLElement */ (editor.shadowRoot.querySelector('.edit-rdr-uri'));
+      node.click();
+      await nextFrame();
+    }
+
+    it('sets the edit flag when clicking on the edit button', async () => {
+      const node = /** @type HTMLElement */ (element.shadowRoot.querySelector('.edit-rdr-uri'));
+      node.click();
+      assert.isTrue(element[editingRedirectUri]);
+      await nextFrame();
+    });
+
+    it('renders the input when enabling the editor', async () => {
+      await enableEditor(element);
+      const input = /** @type HTMLElement */ (element.shadowRoot.querySelector('.redirect-input'));
+      assert.ok(input);
+    });
+
+    it('updates the redirect URI on enter key', async () => {
+      await enableEditor(element);
+      const input = /** @type HTMLInputElement */ (element.shadowRoot.querySelector('.redirect-input'));
+      input.value = 'https://other.com';
+      const e = new KeyboardEvent('keydown', {
+        code: 'Enter',
+        bubbles: true,
+        composed: true,
+        cancelable: true,
+      });
+      input.dispatchEvent(e);
+      assert.equal(element.redirectUri, 'https://other.com');
+    });
+
+    it('updates the redirect URI on numpad enter key', async () => {
+      await enableEditor(element);
+      const input = /** @type HTMLInputElement */ (element.shadowRoot.querySelector('.redirect-input'));
+      input.value = 'https://other.com';
+      const e = new KeyboardEvent('keydown', {
+        code: 'NumpadEnter',
+        bubbles: true,
+        composed: true,
+        cancelable: true,
+      });
+      input.dispatchEvent(e);
+      assert.equal(element.redirectUri, 'https://other.com');
+    });
+
+    it('cancels on Escape key down', async () => {
+      await enableEditor(element);
+      const input = /** @type HTMLInputElement */ (element.shadowRoot.querySelector('.redirect-input'));
+      input.value = 'https://other.com';
+      const e = new KeyboardEvent('keydown', {
+        code: 'Escape',
+        bubbles: true,
+        composed: true,
+        cancelable: true,
+      });
+      input.dispatchEvent(e);
+      await nextFrame();
+      assert.equal(element.redirectUri, redirectUri, 'has the unchanged redirect URI');
+      assert.isFalse(element[editingRedirectUri], 'the edit flag is reset');
+      assert.notOk(element.shadowRoot.querySelector('.redirect-input'), 'does not render the input');
+    });
+
+    it('updates the redirect URI on element blur event', async () => {
+      await enableEditor(element);
+      const input = /** @type HTMLInputElement */ (element.shadowRoot.querySelector('.redirect-input'));
+      // input.focus();
+      input.value = 'https://other.com';
+      const e = new Event('blur');
+      input.dispatchEvent(e);
+      assert.equal(element.redirectUri, 'https://other.com');
+    });
+
+    it('notifies when redirect URI change', async () => {
+      await enableEditor(element);
+      const handler = spy();
+      element.addEventListener('change', handler);
+      element[commitRedirectUri]('https://domain.com');
+      assert.isTrue(handler.calledOnce);
+    });
+
+    it('ignores setting the same value', async () => {
+      await enableEditor(element);
+      const handler = spy();
+      element.addEventListener('change', handler);
+      element[commitRedirectUri](redirectUri);
+      assert.isFalse(handler.called);
+    });
+
+    it('ignores when empty value', async () => {
+      await enableEditor(element);
+      const handler = spy();
+      element.addEventListener('change', handler);
+      element[commitRedirectUri]('');
+      assert.isFalse(handler.called);
+    });
+
+    it('ignores when invalid value', async () => {
+      await enableEditor(element);
+      const handler = spy();
+      element.addEventListener('change', handler);
+      // @ts-ignore
+      element[commitRedirectUri](54);
+      assert.isFalse(handler.called);
+    });
+
+    it('ignores when evil script', async () => {
+      await enableEditor(element);
+      const handler = spy();
+      element.addEventListener('change', handler);
+      // eslint-disable-next-line no-script-url
+      element[commitRedirectUri]('javascript:alert("test")');
+      assert.isFalse(handler.called);
     });
   });
 });

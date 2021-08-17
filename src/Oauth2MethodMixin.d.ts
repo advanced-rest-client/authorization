@@ -1,6 +1,6 @@
 import { TokenInfo, OAuth2Authorization, OAuth2DeliveryMethod } from "@advanced-rest-client/arc-types/src/authorization/Authorization";
 import { TemplateResult } from "lit-html";
-import { CredentialSource } from './AuthorizationMethodElement';
+import { CredentialsInfo, Oauth2Credentials } from "./types";
 export declare interface GrantType {
   type: string;
   label: string;
@@ -18,6 +18,7 @@ export const readUrlValue: unique symbol;
 export const setOauth2Defaults: unique symbol;
 export const authorizeOauth2: unique symbol;
 export const renderOauth2Auth: unique symbol;
+export const credentialsSourceTemplate: unique symbol;
 export const restoreOauth2Auth: unique symbol;
 export const serializeOauth2Auth: unique symbol;
 export const oauth2CustomPropertiesTemplate: unique symbol;
@@ -32,6 +33,23 @@ export const usernameTemplate: unique symbol;
 export const passwordTemplateLocal: unique symbol;
 export const scopesTemplate: unique symbol;
 export const pkceTemplate: unique symbol;
+export const pkceChangeHandler: unique symbol;
+export const paramsLocationTemplate: unique symbol;
+export const grantTypeSelectionHandler: unique symbol;
+export const editRedirectUriTemplate: unique symbol;
+export const editRedirectUriHandler: unique symbol;
+export const editingRedirectUri: unique symbol;
+export const redirectUriContentTemplate: unique symbol;
+export const redirectUriInputTemplate: unique symbol;
+export const redirectInputBlur: unique symbol;
+export const redirectInputKeydown: unique symbol;
+export const commitRedirectUri: unique symbol;
+export const cancelRedirectUri: unique symbol;
+export const credentialSourceHandler: unique symbol;
+export const updateClientCredentials: unique symbol;
+export const updateCredentials: unique symbol;
+export const listCredentials: unique symbol;
+export const isSourceSelected: unique symbol;
 
 export const oauth2GrantTypes: GrantType[];
 
@@ -139,16 +157,16 @@ interface Oauth2MethodMixin {
    * @attribute
    */
   oauthDeliveryName?: string;
-   /**
-    * The base URI to use to construct the correct URLs to the authorization endpoints.
-    * 
-    * When the paths are relative then base URI is added to the path.
-    * Relative paths must start with '/'.
-    * 
-    * Note, URL processing is happening internally in the component. The produced authorize event
-    * will have base URI already applied.
-    * @attribute
-    */
+  /**
+   * The base URI to use to construct the correct URLs to the authorization endpoints.
+   * 
+   * When the paths are relative then base URI is added to the path.
+   * Relative paths must start with '/'.
+   * 
+   * Note, URL processing is happening internally in the component. The produced authorize event
+   * will have base URI already applied.
+   * @attribute
+   */
   baseUri?: string;
   /**
    * The error message returned by the authorization library.
@@ -171,12 +189,26 @@ interface Oauth2MethodMixin {
    */
   pkce: boolean;
   /**
-   * @attribute List of credentials source
+   * The definition of client credentials to be rendered for a given grant type.
+   * When set on the editor it renders a drop down where the user can choose from predefined
+   * credentials (client id & secret).
    */
-  credentialsSource: Array<CredentialSource>;
+  credentialsSource: Array<Oauth2Credentials>;
+  /**
+   * The currently selected source in the client credentials dropdown.
+   * @attribute 
+   */
   credentialSource: string;
+  /**
+   * @attribute 
+   */
   credentialsDisabled: boolean;
-  
+  /** 
+   * When set it allows to edit the redirect URI by the user.
+   * @attribute
+   */
+  allowRedirectUriChange: boolean;
+
   /**
    * Restores previously serialized values
    * @param settings
@@ -209,7 +241,7 @@ interface Oauth2MethodMixin {
    * @returns The auth token or null if couldn't be requested.
    * @throws {Error} When authorization error
    */
-  [authorizeOauth2](): Promise<TokenInfo|null>;
+  [authorizeOauth2](): Promise<TokenInfo | null>;
 
   /**
    * Generates `state` parameter for the OAuth2 call.
@@ -239,11 +271,86 @@ interface Oauth2MethodMixin {
   [scopesChanged](e: CustomEvent): void;
 
   [advHandler](e: CustomEvent): void;
+  /**
+   * The handler for the change event coming from the PKCE input checkbox
+   */
+  [pkceChangeHandler](e: Event): void;
+
+  /**
+   * A handler for the edit redirect URI button click.
+   * Sets the editing flag and requests the update.
+   */
+  [editRedirectUriHandler](): Promise<void>
+
+  /**
+   * Commits the redirect URI editor value on enter key or cancels on escape.
+   */
+  [redirectInputKeydown](e: KeyboardEvent): void;
+
+  /**
+   * Commits the redirect URI editor value on input blur.
+   */
+  [redirectInputBlur](e: Event): void;
+
+  /**
+   * Sets the new redirect URI if the value passes validation.
+   * This closes the editor.
+   * @param value The new value to set.
+   */
+  [commitRedirectUri](value: string): void;
+
+  /**
+   * Resets the redirect URI edit flag and requests an update.
+   */
+  [cancelRedirectUri](): void;
+
+  /**
+   * @returns The list of client credentials to render in the credentials selector.
+   */
+  [listCredentials](): CredentialsInfo[];
+
+  /**
+   * Sets the client credentials after updating them from the credentials source selector.
+   * @param clientId The client id to set on the editor.
+   * @param clientSecret The client secret to set on the editor.
+   * @param disabled Whether the credentials input is disabled.
+   */
+  [updateCredentials](clientId: string, clientSecret: string, disabled: boolean): void;
+
+  /**
+   * This triggers change in the client id & secret of the editor after selecting 
+   * a credentials source by the user.
+   * 
+   * @param selectedSource The name of the selected credentials source to select.
+   */
+  [updateClientCredentials](selectedSource: string): void;
+  [grantTypeSelectionHandler](e: Event): void;
+  [credentialSourceHandler](e: Event): void;
+
+  /**
+   * @returns true when a credentials source is being selected.
+   */
+  [isSourceSelected](): boolean;
 
   /**
    * @returns The template for the OAuth 2 redirect URI label
    */
   [oauth2RedirectTemplate](): TemplateResult;
+
+  /**
+     * @returns The template for the OAuth 2 redirect URI content
+     */
+  [redirectUriContentTemplate](): TemplateResult;
+
+  /**
+   * @returns The template for the OAuth 2 redirect URI input
+   */
+  [redirectUriInputTemplate](): TemplateResult;
+
+  /**
+   * @return The template for the edit redirect URI button, when enabled.
+   */
+  [editRedirectUriTemplate](): TemplateResult | string;
 
   /**
    * @returns The template for the OAuth 2 response type selector
@@ -266,16 +373,21 @@ interface Oauth2MethodMixin {
   [oauth2TokenTemplate](): TemplateResult;
 
   /**
+   * @return The template for the client credentials source.
+   */
+  [credentialsSourceTemplate](): TemplateResult|string;
+
+  /**
    * @returns The template for the OAuth 2 editor.
    */
   [renderOauth2Auth](): TemplateResult;
 
-  [oauth2CustomPropertiesTemplate](): TemplateResult|string;
+  [oauth2CustomPropertiesTemplate](): TemplateResult | string;
 
   /**
    * @returns The template for the OAuth 2 client secret input.
    */
-  [clientSecretTemplate](): TemplateResult|string;
+  [clientSecretTemplate](): TemplateResult | string;
 
   /**
    * @returns The template for the OAuth 2 client id input.
@@ -285,39 +397,47 @@ interface Oauth2MethodMixin {
   /**
    * @returns The template for the toggle advanced view switch
    */
-  [toggleAdvViewSwitchTemplate](): TemplateResult|string;
+  [toggleAdvViewSwitchTemplate](): TemplateResult | string;
 
   /**
    * @param urlType The input type to render
    * @returns The template for the authorization URI input
    */
-  [authorizationUriTemplate](urlType: string): TemplateResult|string;
+  [authorizationUriTemplate](urlType: string): TemplateResult | string;
 
   /**
    * @param urlType The input type to render
    * @returns The template for the access token URI input
    */
-  [accessTokenUriTemplate](urlType: string): TemplateResult|string;
+  [accessTokenUriTemplate](urlType: string): TemplateResult | string;
 
   /**
    * @returns The template for the user name input
    */
-  [usernameTemplate](): TemplateResult|string;
+  [usernameTemplate](): TemplateResult | string;
 
   /**
    * @returns The template for the user password input
    */
-  [passwordTemplateLocal](): TemplateResult|string;
+  [passwordTemplateLocal](): TemplateResult | string;
 
   /**
    * @returns The template for the OAuth 2 scopes input
    */
   [scopesTemplate](): TemplateResult;
-   /**
-     * @returns The template for the PKCE option of the OAuth 2 extension.
-     */
-  [pkceTemplate](): TemplateResult|string;
+  /**
+    * @returns The template for the PKCE option of the OAuth 2 extension.
+    */
+  [pkceTemplate](): TemplateResult | string;
+
+  /**
+   * For client_credentials grant this renders the dropdown with an option to select
+   * where the credentials should be used. Current values: 
+   * - authorization header
+   * - message body
+   */
+  [paramsLocationTemplate](): TemplateResult | string;
 }
 
-export {Oauth2MethodMixinConstructor};
-export {Oauth2MethodMixin};
+export { Oauth2MethodMixinConstructor };
+export { Oauth2MethodMixin };

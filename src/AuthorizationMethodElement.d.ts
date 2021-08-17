@@ -6,6 +6,7 @@ import {DigestMethodMixin} from './DigestMethodMixin';
 import {Oauth1MethodMixin} from './Oauth1MethodMixin';
 import {Oauth2MethodMixin} from './Oauth2MethodMixin';
 import {BearerMethodMixin} from './BearerMethodMixin';
+import { Oauth2Credentials } from './types';
 
 export const typeChangedSymbol: symbol;
 
@@ -111,7 +112,7 @@ export default class AuthorizationMethod {
   /**
    * @attribute List of credentials source
    */
-  credentialsSource: Array<CredentialSource>;
+  credentialsSource: Array<Oauth2Credentials>;
 
   /**
    * Server issued realm for Digest authorization.
@@ -322,15 +323,4 @@ export default class AuthorizationMethod {
    * @throws {Error} When authorization error.
    */
   authorize(): Promise<any|null>;
-}
-
-declare interface CredentialSource {
-  grantType: string
-  credentials: Array<Source>
-}
-
-declare interface Source {
-  name: string
-  clientId: string | undefined
-  clientSecret: string | undefined
 }

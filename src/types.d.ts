@@ -18,3 +18,37 @@ export declare interface ProcessingOptions {
    */
   iframeTimeout?: number;
 }
+
+/**
+ * The definition of client credentials to be rendered for a given grant type.
+ * When set on the editor it renders a drop down where the user can choose from predefined
+ * credentials (client id & secret).
+ */
+declare interface Oauth2Credentials {
+  /**
+   * The grant type to apply these credentials to.
+   */
+  grantType: string;
+  /**
+   * The list of pre-defined credentials to set on the credentials selector.
+   */
+  credentials: CredentialsInfo[];
+}
+
+/**
+ * A credentials source definition.
+ */
+declare interface CredentialsInfo {
+  /**
+   * The label to render in the drop down list.
+   */
+  name: string;
+  /**
+   * The client id to set on the input when selected.
+   */
+  clientId?: string;
+  /**
+   * The client secret to set on the input when selected.
+   */
+  clientSecret?: string;
+}
