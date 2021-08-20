@@ -159,7 +159,6 @@ export const validateOauth2Auth = (element) => {
   if (form && form.elements.length) {
     return validateOauth2form(form);
   }
-  // Array.from($0.elements).forEach((node) => node.validate());
   switch (grantType) {
     case 'implicit':
       return validateOauth2AuthImplicit(element);

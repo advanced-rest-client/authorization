@@ -1,64 +1,16 @@
-import { html, LitElement } from 'lit-element';
-import { EventsTargetMixin } from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
-import authStyles from './styles/CommonAuthStyles.js';
-import '@anypoint-web-components/anypoint-input/anypoint-input.js';
-import '@anypoint-web-components/anypoint-input/anypoint-masked-input.js';
-import '@anypoint-web-components/anypoint-dropdown-menu/anypoint-dropdown-menu.js';
-import '@anypoint-web-components/anypoint-listbox/anypoint-listbox.js';
-import '@anypoint-web-components/anypoint-item/anypoint-item.js';
-import '@anypoint-web-components/anypoint-button/anypoint-button.js';
-import '@advanced-rest-client/clipboard-copy/clipboard-copy.js';
-
 /* eslint-disable class-methods-use-this */
 
-import {
-  BasicMethodMixin,
-  serializeBasicAuth,
-  restoreBasicAuth,
-  renderBasicAuth,
-  clearBasicAuth,
-} from './BasicMethodMixin.js';
-import {
-  BearerMethodMixin,
-  serializeBearerAuth,
-  restoreBearerAuth,
-  renderBearerAuth,
-  clearBearerAuth,
-} from './BearerMethodMixin.js';
-import {
-  NtlmMethodMixin,
-  serializeNtlmAuth,
-  restoreNtlmAuth,
-  renderNtlmAuth,
-  clearNtlmAuth,
-} from './NtlmMethodMixin.js';
-import {
-  DigestMethodMixin,
-  renderDigestAuth,
-  setDigestDefaults,
-  serializeDigestAuth,
-  restoreDigestAuth,
-  clearDigestAuth,
-} from './DigestMethodMixin.js';
-import {
-  Oauth1MethodMixin,
-  setOauth1Defaults,
-  restoreOauth1Auth,
-  serializeOauth1Auth,
-  renderOauth1Auth,
-  clearOauth1Auth,
-  authorizeOauth1,
-} from './Oauth1MethodMixin.js';
-import {
-  Oauth2MethodMixin,
-  setOauth2Defaults,
-  renderOauth2Auth,
-  restoreOauth2Auth,
-  serializeOauth2Auth,
-  clearOauth2Auth,
-  authorizeOauth2,
-} from './Oauth2MethodMixin.js';
-import { validateForm } from './Validation.js';
+import { html, LitElement } from "lit-element";
+import { EventsTargetMixin } from "@advanced-rest-client/events-target-mixin/events-target-mixin.js";
+import authStyles from "./styles/CommonAuthStyles.js";
+import "@anypoint-web-components/anypoint-input/anypoint-input.js";
+import "@anypoint-web-components/anypoint-input/anypoint-masked-input.js";
+import "@anypoint-web-components/anypoint-dropdown-menu/anypoint-dropdown-menu.js";
+import "@anypoint-web-components/anypoint-listbox/anypoint-listbox.js";
+import "@anypoint-web-components/anypoint-item/anypoint-item.js";
+import "@anypoint-web-components/anypoint-button/anypoint-button.js";
+import "@advanced-rest-client/clipboard-copy/clipboard-copy.js";
+import { validateForm } from "./Validation.js";
 import {
   normalizeType,
   METHOD_BASIC,
@@ -67,12 +19,32 @@ import {
   METHOD_DIGEST,
   METHOD_OAUTH1,
   METHOD_OAUTH2,
-  notifyChange,
-  inputHandler,
-  selectionHandler,
-} from './Utils.js';
+} from "./Utils.js";
+import { UiDataHelper } from "./lib/ui/UiDataHelper.js";
 
-export const typeChangedSymbol = Symbol('typeChangedSymbol');
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.OAuth2DeliveryMethod} OAuth2DeliveryMethod */
+/** @typedef {import('./lib/ui/AuthUiBase').default} AuthUiBase */
+/** @typedef {import('./lib/ui/HttpBasic').default} HttpBasic */
+/** @typedef {import('./lib/ui/HttpBearer').default} HttpBearer */
+/** @typedef {import('./lib/ui/Ntlm').default} Ntlm */
+/** @typedef {import('./lib/ui/Digest').default} Digest */
+/** @typedef {import('./lib/ui/OAuth1').default} OAuth1 */
+/** @typedef {import('./lib/ui/OAuth2').default} OAuth2 */
+/** @typedef {import('./types').AuthUiInit} AuthUiInit */
+/** @typedef {import('./types').GrantType} GrantType */
+/** @typedef {import('./types').Oauth2Credentials} Oauth2Credentials */
+/** @typedef {import('./OAuth2ScopeSelectorElement').AllowedScope} AllowedScope */
+
+export const typeChangedSymbol = Symbol("typeChangedSymbol");
+export const typeValue = Symbol("typeValue");
+export const factory = Symbol("factory");
+export const renderCallback = Symbol("renderCallback");
+export const changeCallback = Symbol("changeCallback");
+export const oauth1tokenResponseHandler = Symbol("oauth1tokenResponseHandler");
+export const oauth1ErrorHandler = Symbol("oauth1ErrorHandler");
+export const propagateChanges = Symbol("propagateChanges");
+
+const ignoredProperties = ["type", "_authorizing", 'compatibility'];
 
 /**
  * An element that renders various authorization methods.
@@ -82,16 +54,8 @@ export const typeChangedSymbol = Symbol('typeChangedSymbol');
  * The element mixes in multiple mixins from `src/` directory.
  * Each mixin support an authorization method. When selection change (the `type`
  * property) a render function from corresponding mixin is called.
- *
- * @extends LitElement
- * @mixes Oauth2MethodMixin
- * @mixes Oauth1MethodMixin
- * @mixes DigestMethodMixin
- * @mixes BasicMethodMixin
- * @mixes NtlmMethodMixin
- * @mixes EventsTargetMixin
  */
-export default class AuthorizationMethod extends Oauth2MethodMixin(Oauth1MethodMixin(DigestMethodMixin(NtlmMethodMixin(BearerMethodMixin(BasicMethodMixin(EventsTargetMixin(LitElement))))))) {
+export default class AuthorizationMethodElement extends EventsTargetMixin(LitElement) {
   get styles() {
     return authStyles;
   }
@@ -109,6 +73,7 @@ export default class AuthorizationMethod extends Oauth2MethodMixin(Oauth1MethodM
        * - NTLM
        * - OAuth 1
        * - OAuth 2
+       * - Bearer
        *
        * Depending on selected type different properties are used.
        * For example Basic type only uses `username` and `password` properties,
@@ -133,10 +98,6 @@ export default class AuthorizationMethod extends Oauth2MethodMixin(Oauth1MethodM
        * Enables Material Design outlined style
        */
       outlined: { type: Boolean },
-      /**
-       * Renders mobile friendly view.
-       */
-      narrow: { type: Boolean, reflect: true },
       /**
        * Current password.
        *
@@ -199,23 +160,297 @@ export default class AuthorizationMethod extends Oauth2MethodMixin(Oauth1MethodM
        */
       token: { type: String },
       /**
-       * List of credentials source
+       * The authorization domain.
+       */
+      domain: { type: String },
+      /**
+       * Server issued realm for Digest authorization.
+       *
+       * Used in the following types:
+       * - Digest
+       * - OAuth 1
+       */
+      realm: { type: String },
+      /**
+       * Server issued nonce for Digest authorization.
+       *
+       * Used in the following types:
+       * - Digest
+       * - OAuth 1
+       */
+      nonce: { type: String },
+      /**
+       * The algorithm used to hash the response for Digest authorization.
+       *
+       * It can be either `MD5` or `MD5-sess`.
+       *
+       * Used in the following types:
+       * - Digest
+       */
+      algorithm: { type: String },
+      /**
+       * The quality of protection value for the digest response.
+       * Either '', 'auth' or 'auth-int'
+       *
+       * Used in the following types:
+       * - Digest
+       */
+      qop: { type: String },
+      /**
+       * Nonce count - increments with each request used with the same nonce
+       *
+       * Used in the following types:
+       * - Digest
+       */
+      nc: { type: Number },
+      /**
+       * Client nonce
+       *
+       * Used in the following types:
+       * - Digest
+       */
+      cnonce: { type: String },
+      /**
+       * A string of data specified by the server
+       *
+       * Used in the following types:
+       * - Digest
+       */
+      opaque: { type: String },
+      /**
+       * Hashed response to server challenge
+       *
+       * Used in the following types:
+       * - Digest
+       */
+      response: { type: String },
+      /**
+       * Request HTTP method
+       *
+       * Used in the following types:
+       * - Digest
+       */
+      httpMethod: { type: String },
+      /**
+       * Current request URL.
+       *
+       * Used in the following types:
+       * - Digest
+       */
+      requestUrl: { type: String },
+      /**
+       * Current request body.
+       *
+       * Used in the following types:
+       * - Digest
+       */
+      requestBody: { type: String },
+
+      /**
+       * Client ID aka consumer key
+       *
+       * Used in the following types:
+       * - OAuth 1
+       */
+      consumerKey: { type: String },
+      /**
+       * The client secret aka consumer secret
+       *
+       * Used in the following types:
+       * - OAuth 1
+       */
+      consumerSecret: { type: String },
+      /**
+       * Oauth 1 token secret (from the oauth console).
+       *
+       * Used in the following types:
+       * - OAuth 1
+       */
+      tokenSecret: { type: String },
+      /**
+       * Token request timestamp
+       *
+       * Used in the following types:
+       * - OAuth 1
+       */
+      timestamp: { type: Number },
+      /**
+       * Signature method. Enum {`HMAC-SHA256`, `HMAC-SHA1`, `PLAINTEXT`}
+       *
+       * Used in the following types:
+       * - OAuth 1
+       */
+      signatureMethod: { type: String },
+      /**
+       * OAuth1 endpoint to obtain request token to request user authorization.
+       *
+       * Used in the following types:
+       * - OAuth 1
+       */
+      requestTokenUri: { type: String },
+      /**
+       * HTTP method to obtain authorization header.
+       * Spec recommends POST
+       *
+       * Used in the following types:
+       * - OAuth 1
+       */
+      authTokenMethod: { type: String },
+      /**
+       * A location of the OAuth 1 authorization parameters.
+       * It can be either in the URL as a query string (`querystring` value)
+       * or in the authorization header (`authorization`) value.
+       *
+       * Used in the following types:
+       * - OAuth 1
+       */
+      authParamsLocation: { type: String },
+      /**
+       * List of currently support signature methods.
+       * This can be updated when `amfSettings` property is set.
+       *
+       * Used in the following types:
+       * - OAuth 1
+       */
+      signatureMethods: { type: Array },
+      /**
+       * Selected authorization grand type.
+       */
+      grantType: { type: String },
+      /**
+       * The client ID for the auth token.
+       */
+      clientId: { type: String },
+      /**
+       * The client secret. It to be used when selected server flow.
+       */
+      clientSecret: { type: String },
+      /**
+       * List of user selected scopes.
+       * It can be pre-populated with list of scopes (array of strings).
+       */
+      scopes: { type: Array },
+
+      /**
+       * List of pre-defined scopes to choose from. It will be passed to the `oauth2-scope-selector`
+       * element.
+       */
+      allowedScopes: { type: Array },
+      /**
+       * If true then the `oauth2-scope-selector` will disallow to add a scope that is not
+       * in the `allowedScopes` list. Has no effect if the `allowedScopes` is not set.
+       */
+      preventCustomScopes: { type: Boolean },
+      /**
+       * When the user authorized the app it should be set to the token value.
+       * This element do not perform authorization. Other elements must intercept
+       * the token request event and perform the authorization.
+       */
+      accessToken: { type: String },
+      /**
+       * By default it is "bearer" as the only one defined in OAuth 2.0 spec.
+       * If the token response contains `tokenType` property then this value is updated.
+       */
+      tokenType: { type: String },
+      /**
+       * Currently available grant types.
+       */
+      grantTypes: { type: Array },
+      /**
+       * If set it renders authorization url, token url and scopes as advanced options
+       * which are then invisible by default. User can oen setting using the UI.
+       */
+      advanced: { type: Boolean },
+      /**
+       * If true then the advanced options are opened.
+       */
+      advancedOpened: { type: Boolean },
+      /**
+       * If set, the response type selector is hidden from the UI.
+       */
+      noGrantType: { type: Boolean },
+      /**
+       * Informs about what filed of the authenticated request the token property should be set.
+       * By default the value is `header` which corresponds to the `authorization` by default,
+       * but it is configured by the `deliveryName` property.
+       *
+       * This can be used by the AMF model when the API spec defines where the access token should be
+       * put in the authenticated request.
+       *
+       * @default header
+       */
+      oauthDeliveryMethod: { type: String },
+      /**
+       * The client credentials delivery method.
+       * @default body
+       */
+      ccDeliveryMethod: { type: String },
+      /**
+       * The name of the authenticated request property that carries the token.
+       * By default it is `authorization` which corresponds to `header` value of the `deliveryMethod` property.
+       *
+       * By setting both `deliveryMethod` and `deliveryName` you instruct the application (assuming it reads this values)
+       * where to put the authorization token.
+       *
+       * @default authorization
+       */
+      oauthDeliveryName: { type: String },
+      /**
+       * The base URI to use to construct the correct URLs to the authorization endpoints.
+       *
+       * When the paths are relative then base URI is added to the path.
+       * Relative paths must start with '/'.
+       *
+       * Note, URL processing is happening internally in the component. The produced authorize event
+       * will have base URI already applied.
+       */
+      baseUri: { type: String },
+      /**
+       * The error message returned by the authorization library.
+       * It renders error dialog when an error ocurred.
+       * It is automatically cleared when the user request the token again.
+       */
+      lastErrorMessage: { type: String },
+      /**
+       * When this property is set then the PKCE option is not rendered for the
+       * `authorization_code`. This is mainly meant to be used by the `api-authorization-method`
+       * to keep this control disabled and override generated settings when the API spec
+       * says that the PKCE is supported.
+       */
+      noPkce: { type: Boolean },
+      /**
+       * Whether or not the PKCE extension is enabled for this authorization configuration.
+       * Note, PKCE, per the spec, is only available for `authorization_code` grantType.
+       */
+      pkce: { type: Boolean },
+      /**
+       * The definition of client credentials to be rendered for a given grant type.
+       * When set on the editor it renders a drop down where the user can choose from predefined
+       * credentials (client id & secret).
        */
       credentialsSource: { type: Array },
-  };
+      /**
+       * Selected credential source
+       */
+      credentialSource: { type: String },
+      /**
+       * When set it allows to edit the redirect URI by the user.
+       */
+      allowRedirectUriChange: { type: Boolean },
+    };
   }
 
   get type() {
-    return this._type;
+    return this[typeValue];
   }
 
   set type(value) {
-    const old = this._type;
+    const old = this[typeValue];
     if (old === value) {
       return;
     }
-    this._type = value;
-    this.requestUpdate('type', old);
+    this[typeValue] = value;
+    this.requestUpdate("type", old);
     this[typeChangedSymbol](value);
   }
 
@@ -233,14 +468,14 @@ export default class AuthorizationMethod extends Oauth2MethodMixin(Oauth1MethodM
    */
   set onchange(value) {
     if (this._onChange) {
-      this.removeEventListener('change', this._onChange);
+      this.removeEventListener("change", this._onChange);
     }
-    if (typeof value !== 'function') {
+    if (typeof value !== "function") {
       this._onChange = null;
       return;
     }
     this._onChange = value;
-    this.addEventListener('change', value);
+    this.addEventListener("change", value);
   }
 
   /**
@@ -257,95 +492,264 @@ export default class AuthorizationMethod extends Oauth2MethodMixin(Oauth1MethodM
   constructor() {
     super();
     this._authorizing = false;
-    this.password = undefined;
-    this.username = undefined;
-    this.redirectUri = undefined;
-    this.accessTokenUri = undefined;
-    this.authorizationUri = undefined;
-    this.token = undefined;
-    this.readOnly = false;
-    this.disabled = false;
-    this.compatibility = false;
-    this.outlined = false;
-    this.narrow = false;
+    /** @type string */
     this.type = undefined;
+    /** @type string */
+    this[typeValue] = undefined;
+    /** @type boolean */
+    this.readOnly = undefined;
+    /** @type boolean */
+    this.disabled = undefined;
+    /** @type boolean */
+    this.compatibility = undefined;
+    /** @type boolean */
+    this.outlined = undefined;
+    /** @type string */
+    this.grantType = undefined;
+    /** @type string */
+    this.clientId = undefined;
+    /** @type string */
+    this.clientSecret = undefined;
+    /** @type string[] */
+    this.scopes = undefined;
+    /** @type string */
+    this.authorizationUri = undefined;
+    /** @type string */
+    this.accessTokenUri = undefined;
+    /** @type string */
+    this.redirectUri = undefined;
+    /** @type string[] | AllowedScope[] */
+    this.allowedScopes = undefined;
+    /** @type boolean */
+    this.preventCustomScopes = undefined;
+    /** @type string */
+    this.accessToken = undefined;
+    /** @type string */
+    this.tokenType = undefined;
+    /** @type GrantType[] */
+    this.grantTypes = undefined;
+    /** @type boolean */
+    this.advanced = undefined;
+    /** @type boolean */
+    this.advancedOpened = undefined;
+    /** @type boolean */
+    this.noGrantType = undefined;
+    /** @type OAuth2DeliveryMethod */
+    this.oauthDeliveryMethod = undefined;
+    /** @type OAuth2DeliveryMethod */
+    this.ccDeliveryMethod = 'body';
+    /** @type string */
+    this.oauthDeliveryName = undefined;
+    /** @type string */
+    this.baseUri = undefined;
+    /** @type string */
+    this.lastErrorMessage = undefined;
+    /** @type boolean */
+    this.noPkce = undefined;
+    /** @type boolean */
+    this.pkce = undefined;
+    /** @type Oauth2Credentials[] */
+    this.credentialsSource = undefined;
+    /** @type string */
+    this.credentialSource = undefined;
+    /** @type boolean */
+    this.allowRedirectUriChange = undefined;
+    /** @type string */
+    this.password = '';
+    /** @type string */
+    this.username = '';
+    /** @type string */
+    this.consumerKey = undefined;
+    /** @type string */
+    this.consumerSecret = undefined;
+    /** @type string */
+    this.token = undefined;
+    /** @type string */
+    this.tokenSecret = undefined;
+    /** @type number */
+    this.timestamp = undefined;
+    /** @type string */
+    this.nonce = undefined;
+    /** @type string */
+    this.realm = undefined;
+    /** @type string */
+    this.signatureMethod = undefined;
+    /** @type string */
+    this.requestTokenUri = undefined;
+    /** @type string */
+    this.authTokenMethod = undefined;
+    /** @type string */
+    this.authParamsLocation = undefined;
+    /** @type string[] */
+    this.signatureMethods = undefined;
+    /** @type string */
+    this.algorithm = undefined;
+    /** @type string */
+    this.qop = undefined;
+    /** @type number */
+    this.nc = undefined;
+    /** @type string */
+    this.cnonce = undefined;
+    /** @type string */
+    this.opaque = undefined;
+    /** @type string */
+    this.response = undefined;
+    /** @type string */
+    this.httpMethod = undefined;
+    /** @type string */
+    this.requestUrl = undefined;
+    /** @type any */
+    this.requestBody = undefined;
+
+    /** @type AuthUiBase */
+    this[factory] = undefined;
+
+    this[renderCallback] = this[renderCallback].bind(this);
+    this[changeCallback] = this[changeCallback].bind(this);
+    this[oauth1tokenResponseHandler] = this[oauth1tokenResponseHandler].bind(this);
+    this[oauth1ErrorHandler] = this[oauth1ErrorHandler].bind(this);
   }
 
-  connectedCallback() {
-    super.connectedCallback();
-    this[typeChangedSymbol](this.type);
+  _attachListeners(node) {
+    super._attachListeners(node);
+    node.addEventListener("oauth1-token-response", this[oauth1tokenResponseHandler]);
+    node.addEventListener("oauth1-error", this[oauth1ErrorHandler]);
+  }
+
+  _detachListeners(node) {
+    super._detachListeners(node);
+    node.removeEventListener("oauth1-token-response", this[oauth1tokenResponseHandler]);
+    node.removeEventListener("oauth1-error", this[oauth1ErrorHandler]);
+  }
+
+  async [renderCallback]() {
+    await this.requestUpdate();
+  }
+
+  [changeCallback]() {
+    this[propagateChanges]();
+    this.dispatchEvent(new CustomEvent("change"));
+  }
+
+  /**
+   * Propagates values from the UI factory to this element.
+   * This is to synchronize user entered values with the element's state.
+   */
+  [propagateChanges]() {
+    switch (normalizeType(this.type)) {
+      case METHOD_BASIC: UiDataHelper.populateBasic(this, /** @type HttpBasic */ (this[factory])); break;
+      case METHOD_BEARER: UiDataHelper.populateBearer(this, /** @type HttpBearer */ (this[factory])); break;
+      case METHOD_NTLM: UiDataHelper.populateNtlm(this, /** @type Ntlm */ (this[factory])); break;
+      case METHOD_DIGEST: UiDataHelper.populateDigest(this, /** @type Digest */ (this[factory])); break;
+      case METHOD_OAUTH1: UiDataHelper.populateOAuth1(this, /** @type OAuth1 */ (this[factory])); break;
+      case METHOD_OAUTH2: UiDataHelper.populateOAuth2(this, /** @type OAuth2 */ (this[factory])); break;
+      default:
+    }
+  }
+
+  /**
+   * @param {Map<string | number | symbol, unknown>} changedProperties
+   */
+  firstUpdated(changedProperties) {
+    super.firstUpdated(changedProperties);
+    if (this[factory]) {
+      // when setting variables in a template and these variables are `undefined` 
+      // the defaults will be overwritten by the pending changes.
+      // This makes sure that this won't happen during initialization.
+      this[factory].defaults();
+    }
+  }
+
+  /**
+   * @param {Map<string | number | symbol, unknown>} changedProperties
+   */
+  update(changedProperties) {
+    if (!this[factory]) {
+      super.update(changedProperties);
+      return;
+    }
+    for (const key of changedProperties.keys()) {
+      if (!ignoredProperties.includes(String(key))) {
+        this[factory][key] = this[key];
+      } else if (key === '_authorizing') {
+        this[factory].authorizing = this[key];
+      } else if (key === 'compatibility') {
+        this[factory].anypoint = this[key];
+      }
+    }
+    if (normalizeType(this.type) === METHOD_OAUTH2) {
+      /** @type OAuth2 */ (this[factory]).autoHideOnce();
+    }
+    super.update(changedProperties);
   }
 
   /**
    * A function called when `type` changed.
    * Note, that other properties may not be initialized just yet.
    *
-   * @param {String} type Current value.
+   * @param {string} type Current value.
    */
   [typeChangedSymbol](type) {
+    /** @type AuthUiBase */
+    let instance;
+    const init = /** @type AuthUiInit */ ({
+      renderCallback: this[renderCallback],
+      changeCallback: this[changeCallback],
+      target: this,
+      readOnly: this.readOnly,
+      disabled: this.disabled,
+      anypoint: this.compatibility,
+      outlined: this.outlined,
+      authorizing: this.authorizing,
+    });
     switch (normalizeType(type)) {
+      case METHOD_BASIC:
+        instance = UiDataHelper.setupBasic(this, init);
+        break;
+      case METHOD_BEARER:
+        instance = UiDataHelper.setupBearer(this, init);
+        break;
+      case METHOD_NTLM:
+        instance = UiDataHelper.setupNtlm(this, init);
+        break;
       case METHOD_DIGEST:
-        return this[setDigestDefaults]();
+        instance = UiDataHelper.setupDigest(this, init);
+        break;
       case METHOD_OAUTH1:
-        return this[setOauth1Defaults]();
+        instance = UiDataHelper.setupOauth1(this, init);
+        break;
       case METHOD_OAUTH2:
-        return this[setOauth2Defaults]();
+        instance = UiDataHelper.setupOauth2(this, init);
+        break;
       default:
-        return undefined;
+        throw new Error(`Unsupported authorization type ${type}`);
     }
+    this[factory] = instance;
+    instance.defaults();
+    this.requestUpdate();
   }
 
   /**
    * Clears settings for current type.
    */
   clear() {
-    const type = normalizeType(this.type);
-    switch (type) {
-      case METHOD_BASIC:
-        this[clearBasicAuth]();
-        break;
-      case METHOD_BEARER:
-        this[clearBearerAuth]();
-        break;
-      case METHOD_NTLM:
-        this[clearNtlmAuth]();
-        break;
-      case METHOD_DIGEST:
-        this[clearDigestAuth]();
-        break;
-      case METHOD_OAUTH1:
-        this[clearOauth1Auth]();
-        break;
-      case METHOD_OAUTH2:
-        this[clearOauth2Auth]();
-        break;
-      default:
+    if (!this[factory]) {
+      throw new Error(`The authorization type is not set.`);
     }
+    this._authorizing = false;
+    this[factory].reset();
   }
 
   /**
    * Creates a settings object with user provided data for current method.
    *
-   * @return {Object} User provided data
+   * @return {any} User provided data
    */
   serialize() {
-    const type = normalizeType(this.type);
-    switch (type) {
-      case METHOD_BASIC:
-        return this[serializeBasicAuth]();
-      case METHOD_BEARER:
-        return this[serializeBearerAuth]();
-      case METHOD_NTLM:
-        return this[serializeNtlmAuth]();
-      case METHOD_DIGEST:
-        return this[serializeDigestAuth]();
-      case METHOD_OAUTH1:
-        return this[serializeOauth1Auth]();
-      case METHOD_OAUTH2:
-        return this[serializeOauth2Auth]();
-      default:
-        return '';
+    if (!this[factory]) {
+      throw new Error(`The authorization type is not set.`);
     }
+    return this[factory].serialize();
   }
 
   /**
@@ -361,99 +765,63 @@ export default class AuthorizationMethod extends Oauth2MethodMixin(Oauth1MethodM
    * A method type must be selected before calling this function.
    *
    * @param {any} settings Depends on current type.
-   * @return {any}
    */
   restore(settings) {
-    const type = normalizeType(this.type);
-    switch (type) {
-      case METHOD_BASIC:
-        return this[restoreBasicAuth](settings);
-      case METHOD_BEARER:
-        return this[restoreBearerAuth](settings);
-      case METHOD_NTLM:
-        return this[restoreNtlmAuth](settings);
-      case METHOD_DIGEST:
-        return this[restoreDigestAuth](settings);
-      case METHOD_OAUTH1:
-        return this[restoreOauth1Auth](settings);
-      case METHOD_OAUTH2:
-        return this[restoreOauth2Auth](settings);
-      default:
-        return '';
+    if (!this[factory]) {
+      throw new Error(`The authorization type is not set.`);
     }
+    this[factory].restore(settings);
+    this[propagateChanges]();
   }
 
   /**
    * For methods with asynchronous authorization, this functions
    * calls the underlying authorize function and returns the authorization result.
-   * 
+   *
    * @returns {Promise<any|null>} A promise resolved to the authorization result that depends on the method, or null
-   * if the current method does not support async authorization. 
+   * if the current method does not support async authorization.
    * @throws {Error} When authorization error.
    */
   async authorize() {
-    const type = normalizeType(this.type);
-    switch (type) {
-      case METHOD_OAUTH1:
-        return this[authorizeOauth1]();
-      case METHOD_OAUTH2:
-        return this[authorizeOauth2]();
-      default:
-        return null;
+    if (!this[factory]) {
+      throw new Error(`The authorization type is not set.`);
     }
+    return this[factory].authorize();
   }
 
   /**
-   * A handler for the `input` event on an input element
-   * @param {Event} e Original event dispatched by the input.
+   * Handler for the `oauth1-token-response` custom event.
+   * Sets `token` and `tokenSecret` properties from the event.
+   *
+   * @param {CustomEvent} e
    */
-  [inputHandler](e) {
-    const { name, value } = /** @type HTMLInputElement */ (e.target);
-    this[name] = value;
-    notifyChange(this);
+  [oauth1tokenResponseHandler](e) {
+    if (!this[factory] || normalizeType(this.type) !== METHOD_OAUTH1) {
+      return;
+    }
+    const typed = /** @type OAuth1 */ (this[factory]);
+    this._authorizing = false;
+    typed.authorizing = false;
+    typed.oauth1tokenResponseHandler(e);
   }
 
-  [selectionHandler](e) {
-    const {
-      parentElement,
-      selected,
-    } = /** @type HTMLOptionElement */ (e.target);
-    const { name } = /** @type HTMLInputElement */ (parentElement);
-    this[name] = selected;
-    notifyChange(this);
+  [oauth1ErrorHandler]() {
+    if (!this[factory] || normalizeType(this.type) !== METHOD_OAUTH1) {
+      return;
+    }
+    const typed = /** @type OAuth1 */ (this[factory]);
+    this._authorizing = false;
+    typed.authorizing = false;
   }
 
   render() {
     const { styles } = this;
     let tpl;
-    const type = normalizeType(this.type);
-    switch (type) {
-      case METHOD_BASIC:
-        tpl = this[renderBasicAuth]();
-        break;
-      case METHOD_BEARER:
-        tpl = this[renderBearerAuth]();
-        break;
-      case METHOD_NTLM:
-        tpl = this[renderNtlmAuth]();
-        break;
-      case METHOD_DIGEST:
-        tpl = this[renderDigestAuth]();
-        break;
-      case METHOD_OAUTH1:
-        tpl = this[renderOauth1Auth]();
-        break;
-      case METHOD_OAUTH2:
-        tpl = this[renderOauth2Auth]();
-        break;
-      default:
-        tpl = '';
+    if (this[factory]) {
+      tpl = this[factory].render();
+    } else {
+      tpl = "";
     }
-    return html`
-      <style>
-        ${styles}
-      </style>
-      ${tpl}
-    `;
+    return html`<style>${styles}</style>${tpl}`;
   }
 }

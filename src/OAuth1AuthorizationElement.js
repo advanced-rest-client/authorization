@@ -15,12 +15,7 @@ import { LitElement } from 'lit-element';
 import { EventsTargetMixin } from '@advanced-rest-client/events-target-mixin';
 import { HeadersParser } from '@advanced-rest-client/arc-headers';
 
-/**
- * @typedef AuthSettings
- * @property {Boolean} valid
- * @property {String} type
- * @property {Object} settings
- */
+/** @typedef {import('./OAuth1AuthorizationElement').AuthSettings} AuthSettings */
 
 if (window) {
   // @ts-ignore
@@ -861,7 +856,7 @@ export class OAuth1AuthorizationElement extends EventsTargetMixin(LitElement) {
   }
 
   /**
-   * Returns a list of characters that can be used to buid nonce.
+   * Returns a list of characters that can be used to build nonce.
    *
    * @return {Array<String>}
    */

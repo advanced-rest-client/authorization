@@ -25,11 +25,11 @@ import { ifDefined } from 'lit-html/directives/if-defined.js';
  * @param {string} name Input name
  * @param {string|number} value Current input value
  * @param {string} label The label to render
- * @param {Function} inputHandler Handler for the input event.
+ * @param {Function} changeHandler Handler for the input event.
  * @param {InputConfiguration=} [opts={}] Optional configuration options
  * @return {TemplateResult}
  */
-export const inputTemplate = (name, value, label, inputHandler, opts = {}) => {
+export const inputTemplate = (name, value, label, changeHandler, opts = {}) => {
   const config = { ...opts };
   config.type = opts.type || 'text';
   if (opts.autocomplete === undefined) {
@@ -38,7 +38,7 @@ export const inputTemplate = (name, value, label, inputHandler, opts = {}) => {
   return html`
     <anypoint-input
       .value="${value}"
-      @input="${inputHandler}"
+      @change="${changeHandler}"
       name="${name}"
       type="${config.type}"
       ?required="${config.required}"
@@ -82,7 +82,7 @@ export const passwordTemplate = (
   return html`
     <anypoint-masked-input
       .value="${value}"
-      @input="${inputHandler}"
+      @change="${inputHandler}"
       name="${name}"
       type="${config.type}"
       ?required="${config.required}"

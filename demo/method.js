@@ -40,15 +40,17 @@ class ComponentDemo extends DemoPage {
     this.digestChangesCounter = 0;
     this.oauth1ChangesCounter = 0;
     this.oauth2ChangesCounter = 0;
-    this.oauth2redirect = 'http://auth.advancedrestclient.com/arc.html';
+    // this.oauth2redirect = 'http://auth.advancedrestclient.com/arc.html';
+    this.oauth2redirect = `${window.location.origin}/oauth-popup.html`;
     this.oauth2scopes = [
       'profile',
       'email'
     ];
     this.authorizationUri = new URL('/demo/oauth-authorize.html', window.location.href).toString();
+    this.accessTokenUri = `${window.location.origin}/auth/token`;
     this.credentialsSource = [{grantType: 'client_credentials', credentials: [{name: 'My social Network', clientId: '123', clientSecret: 'xyz'}, {name: 'My social Network 2', clientId: '1234', clientSecret: 'wxyz'}]}];
 
-    this._authTypeHandler = this._authTypeHandler.bind(this);
+    // this._authTypeHandler = this._authTypeHandler.bind(this);
     this._mainChangeHandler = this._mainChangeHandler.bind(this);
     this._basicChangeHandler = this._basicChangeHandler.bind(this);
     this._bearerChangeHandler = this._bearerChangeHandler.bind(this);
@@ -70,33 +72,40 @@ class ComponentDemo extends DemoPage {
 
   _authTypeHandler(e) {
     const { name, checked, value } = e.target;
+    console.log(name, checked, value);
     if (!checked) {
       return;
     }
     this[name] = value;
   }
 
-  _mainChangeHandler() {
+  _mainChangeHandler(e) {
+    console.log(e.target.serialize());
     this.mainChangesCounter++;
   }
 
-  _basicChangeHandler() {
+  _basicChangeHandler(e) {
+    console.log(e.target.serialize());
     this.basicChangesCounter++;
   }
 
-  _bearerChangeHandler() {
+  _bearerChangeHandler(e) {
+    console.log(e.target.serialize());
     this.bearerChangesCounter++;
   }
 
-  _ntlmChangeHandler() {
+  _ntlmChangeHandler(e) {
+    console.log(e.target.serialize());
     this.ntlmChangesCounter++;
   }
 
-  _digestChangeHandler() {
+  _digestChangeHandler(e) {
+    console.log(e.target.serialize());
     this.digestChangesCounter++;
   }
 
-  _oauth1ChangeHandler() {
+  _oauth1ChangeHandler(e) {
+    console.log(e.target.serialize());
     this.oauth1ChangesCounter++;
   }
 
@@ -398,6 +407,7 @@ class ComponentDemo extends DemoPage {
       oauth2BaseUriEnabled,
       credentialsSource,
       allowRedirectUriChange,
+      accessTokenUri,
     } = this;
     const baseUri = oauth2BaseUriEnabled ? 'https://api.domain.com/auth/' : undefined;
     return html`
@@ -416,10 +426,11 @@ class ComponentDemo extends DemoPage {
           slot="content"
           redirectUri="${oauth2redirect}"
           authorizationUri="${authorizationUri}"
-          accessTokenUri="https://api.domain.com/token"
+          accessTokenUri="${accessTokenUri}"
           clientId="test-client-id"
           grantType="authorization_code"
           pkce
+          advanced
           ?allowRedirectUriChange="${allowRedirectUriChange}"
           .credentialsSource="${credentialsSource}"
           .baseUri="${baseUri}"
@@ -451,7 +462,7 @@ class ComponentDemo extends DemoPage {
       ${this._demoTemplate()}
       ${this._demoBasic()}
       ${this._demoBearer()}
-      ${this._demoNtlm()}
+      ${this._demoNtlm()}  
       ${this._demoDigest()}
       ${this._demoOauth1()}
       ${this._demoOauth2()}

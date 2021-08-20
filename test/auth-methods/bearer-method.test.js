@@ -72,7 +72,7 @@ describe('Bearer method', () => {
       const input =  /** @type AnypointMaskedInput */ (element.shadowRoot.querySelector(tokenSelector));
       setTimeout(() => {
         input.value = 'test';
-        input.dispatchEvent(new CustomEvent('input'));
+        input.dispatchEvent(new CustomEvent('change'));
       });
       const e = await oneEvent(element, 'change');
       assert.ok(e);

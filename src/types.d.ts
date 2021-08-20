@@ -1,3 +1,41 @@
+import AuthorizationMethodElement from "./AuthorizationMethodElement";
+
+export interface AuthUiInit {
+  /**
+   * A callback called when the UI should be re-rendered.
+   */
+  renderCallback: () => Promise<void>;
+  /**
+   * A callback called when the UI state change. This should be used to call the serialize() function
+   * and store the UI state,
+   */
+  changeCallback: () => void;
+  /**
+   * The element that renders this method.
+   */
+  target: AuthorizationMethodElement;
+  /**
+   * Enables the outlined theme of material design
+   */
+  outlined?: boolean;
+  /**
+   * Enables the Anypoint platform theme
+   */
+  anypoint?: boolean;
+  /**
+   * Renders the UI in the read only state
+   */
+  readOnly?: boolean;
+  /**
+   * Renders the UI in the disabled state
+   */
+  disabled?: boolean;
+  /**
+   * Informs the UI that the element is in the `authorizing` state.
+   */
+  authorizing?: boolean;
+}
+
 export declare interface ProcessingOptions {
   /**
    * The number of milliseconds of an interval to check the popup state.
@@ -51,4 +89,9 @@ declare interface CredentialsInfo {
    * The client secret to set on the input when selected.
    */
   clientSecret?: string;
+}
+
+export declare interface GrantType {
+  type: string;
+  label: string;
 }

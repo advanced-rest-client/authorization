@@ -5,12 +5,11 @@ import { AuthorizationEventTypes } from '@advanced-rest-client/arc-events';
 import { METHOD_OAUTH2 } from '../../index.js';
 import '../../authorization-method.js';
 import {
-  commitRedirectUri,
-  editingRedirectUri,
   oauth2GrantTypes,
-  setOauth2Defaults
-} from '../../src/Oauth2MethodMixin.js';
+} from '../../src/lib/ui/OAuth2.js';
+import { factory } from '../../src/AuthorizationMethodElement.js';
 
+/** @typedef {import('../../src/lib/ui/OAuth2').default} OAuth2 */
 /** @typedef {import('../../src/AuthorizationMethodElement').default} AuthorizationMethod */
 /** @typedef {import('@anypoint-web-components/anypoint-input').AnypointInput} AnypointInput */
 
@@ -216,11 +215,7 @@ describe('OAuth 2, implicit method', () => {
         const input = /** @type AnypointInput */ (element.shadowRoot.querySelector(`*[name="${name}"]`));
         setTimeout(() => {
           input.value = value;
-          if (name === 'scopes') {
-            input.dispatchEvent(new CustomEvent('change'));
-          } else {
-            input.dispatchEvent(new CustomEvent('input'));
-          }
+          input.dispatchEvent(new CustomEvent('change'));
         });
         const e = await oneEvent(element, 'change');
         assert.ok(e);
@@ -230,7 +225,8 @@ describe('OAuth 2, implicit method', () => {
     it('does not notify when sets default values', () => {
       const handler = spy();
       element.addEventListener('change', handler);
-      element[setOauth2Defaults]();
+      const f = /** @type OAuth2 */ (element[factory]);
+      f.defaults();
       assert.isFalse(handler.called);
     });
 
@@ -317,18 +313,28 @@ describe('OAuth 2, implicit method', () => {
     /**
      * @param {string=} state
      * @param {string=} tokenType
+     * @param {CustomEvent=} e
+     */
+    async function sendResponse(state, tokenType, e) {
+      await aTimeout(1);
+      return {
+        accessToken: 'test-token',
+        tokenType,
+        // @ts-ignore
+        state: state || e.detail.state,
+      }
+    }
+
+    /**
+     * @param {string=} state
+     * @param {string=} tokenType
      */
     function mockTokenRequest(state, tokenType) {
       window.addEventListener(AuthorizationEventTypes.OAuth2.authorize, function f(e) {
         window.removeEventListener(AuthorizationEventTypes.OAuth2.authorize, f);
         e.preventDefault();
         // @ts-ignore
-        e.detail.result = Promise.resolve({
-          accessToken: 'test-token',
-          tokenType,
-          // @ts-ignore
-          state: state || e.detail.state,
-        });
+        e.detail.result = sendResponse(state, tokenType, e);
       });
     }
 
@@ -363,10 +369,11 @@ describe('OAuth 2, implicit method', () => {
       assert.isTrue(handler.called);
     });
 
-    it('sets #authorizing flag', () => {
+    it('sets #authorizing flag', async () => {
       mockTokenRequest();
       const button = /** @type HTMLElement */ (element.shadowRoot.querySelector('.auth-button'));
       button.click();
+      await nextFrame();
       assert.isTrue(element.authorizing);
     });
 
@@ -380,6 +387,7 @@ describe('OAuth 2, implicit method', () => {
     it('resets the #authorizing flag when token response', async () => {
       mockTokenRequest();
       element.authorize();
+      await aTimeout(2);
       await nextFrame();
       assert.isFalse(element.authorizing);
     });
@@ -396,6 +404,7 @@ describe('OAuth 2, implicit method', () => {
     it('sets values from the response event with state', async () => {
       mockTokenRequest(undefined, 'other');
       element.authorize();
+      await aTimeout(2);
       await nextFrame();
       assert.equal(element.accessToken, 'test-token');
       assert.equal(element.tokenType, 'other');
@@ -404,6 +413,7 @@ describe('OAuth 2, implicit method', () => {
     it('ignores events with different state', async () => {
       mockTokenRequest('unknown-state', 'other');
       element.authorize();
+      await aTimeout(2);
       await nextFrame();
       assert.isUndefined(element.accessToken);
     });
@@ -412,6 +422,7 @@ describe('OAuth 2, implicit method', () => {
       mockTokenRequest(undefined, 'token-value');
       element.authorize();
       element.accessToken = 'test-token';
+      await aTimeout(2);
       await nextFrame();
       assert.equal(element.accessToken, 'test-token');
     });
@@ -420,6 +431,7 @@ describe('OAuth 2, implicit method', () => {
       mockTokenRequest();
       element.authorize();
       element.tokenType = 'custom';
+      await aTimeout(2);
       await nextFrame();
       assert.equal(element.tokenType, 'Bearer');
     });
@@ -429,6 +441,7 @@ describe('OAuth 2, implicit method', () => {
       const handler = spy();
       element.addEventListener('change', handler);
       element.authorize();
+      await aTimeout(2);
       await nextFrame();
       assert.isTrue(handler.called);
     });
@@ -588,7 +601,8 @@ describe('OAuth 2, implicit method', () => {
     it('sets the edit flag when clicking on the edit button', async () => {
       const node = /** @type HTMLElement */ (element.shadowRoot.querySelector('.edit-rdr-uri'));
       node.click();
-      assert.isTrue(element[editingRedirectUri]);
+      const f = /** @type OAuth2 */ (element[factory]);
+      assert.isTrue(f._editingRedirectUri);
       await nextFrame();
     });
 
@@ -639,7 +653,8 @@ describe('OAuth 2, implicit method', () => {
       input.dispatchEvent(e);
       await nextFrame();
       assert.equal(element.redirectUri, redirectUri, 'has the unchanged redirect URI');
-      assert.isFalse(element[editingRedirectUri], 'the edit flag is reset');
+      const f = /** @type OAuth2 */ (element[factory]);
+      assert.isFalse(f._editingRedirectUri, 'the edit flag is reset');
       assert.notOk(element.shadowRoot.querySelector('.redirect-input'), 'does not render the input');
     });
 
@@ -657,7 +672,8 @@ describe('OAuth 2, implicit method', () => {
       await enableEditor(element);
       const handler = spy();
       element.addEventListener('change', handler);
-      element[commitRedirectUri]('https://domain.com');
+      const f = /** @type OAuth2 */ (element[factory]);
+      f.commitRedirectUri('https://domain.com');
       assert.isTrue(handler.calledOnce);
     });
 
@@ -665,7 +681,8 @@ describe('OAuth 2, implicit method', () => {
       await enableEditor(element);
       const handler = spy();
       element.addEventListener('change', handler);
-      element[commitRedirectUri](redirectUri);
+      const f = /** @type OAuth2 */ (element[factory]);
+      f.commitRedirectUri(redirectUri);
       assert.isFalse(handler.called);
     });
 
@@ -673,7 +690,8 @@ describe('OAuth 2, implicit method', () => {
       await enableEditor(element);
       const handler = spy();
       element.addEventListener('change', handler);
-      element[commitRedirectUri]('');
+      const f = /** @type OAuth2 */ (element[factory]);
+      f.commitRedirectUri('');
       assert.isFalse(handler.called);
     });
 
@@ -681,8 +699,9 @@ describe('OAuth 2, implicit method', () => {
       await enableEditor(element);
       const handler = spy();
       element.addEventListener('change', handler);
+      const f = /** @type OAuth2 */ (element[factory]);
       // @ts-ignore
-      element[commitRedirectUri](54);
+      f.commitRedirectUri(54);
       assert.isFalse(handler.called);
     });
 
@@ -690,8 +709,9 @@ describe('OAuth 2, implicit method', () => {
       await enableEditor(element);
       const handler = spy();
       element.addEventListener('change', handler);
+      const f = /** @type OAuth2 */ (element[factory]);
       // eslint-disable-next-line no-script-url
-      element[commitRedirectUri]('javascript:alert("test")');
+      f.commitRedirectUri('javascript:alert("test")');
       assert.isFalse(handler.called);
     });
   });

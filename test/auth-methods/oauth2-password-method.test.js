@@ -113,7 +113,7 @@ describe('OAuth 2, password method', () => {
 
   describe('Advanced mode', () => {
     it('renders all with values values', async () => {
-      const element = await basicFixture(createParamsMap());
+      const element = await basicFixture();
       assert.isTrue(element.advancedOpened, 'advanced view is opened');
       assert.isUndefined(element.advanced, 'advanced is undefined');
     });
@@ -150,11 +150,7 @@ describe('OAuth 2, password method', () => {
         const input = /** @type AnypointInput */ (element.shadowRoot.querySelector(`*[name="${name}"]`));
         setTimeout(() => {
           input.value = value;
-          if (name === 'scopes') {
-            input.dispatchEvent(new CustomEvent('change'));
-          } else {
-            input.dispatchEvent(new CustomEvent('input'));
-          }
+          input.dispatchEvent(new CustomEvent('change'));
         });
         const e = await oneEvent(element, 'change');
         assert.ok(e);

@@ -3,7 +3,9 @@ import { spy } from 'sinon';
 import { AuthorizationEventTypes } from '@advanced-rest-client/arc-events';
 import { METHOD_OAUTH2 } from '../../index.js';
 import '../../authorization-method.js';
+import { factory } from '../../src/AuthorizationMethodElement.js';
 
+/** @typedef {import('../../src/lib/ui/OAuth2').default} OAuth2 */
 /** @typedef {import('../../src/AuthorizationMethodElement').default} AuthorizationMethod */
 /** @typedef {import('@anypoint-web-components/anypoint-input').AnypointInput} AnypointInput */
 /** @typedef {import('@anypoint-web-components/anypoint-dropdown-menu').AnypointDropdownMenu} AnypointDropdownMenu */
@@ -211,7 +213,7 @@ describe('OAuth 2, client credentials method', () => {
           } else {
             const input = /** @type AnypointInput */ (node);
             input.value = value;
-            input.dispatchEvent(new CustomEvent('input'));
+            input.dispatchEvent(new CustomEvent('change'));
           }
         });
         const e = await oneEvent(element, 'change');
@@ -364,7 +366,8 @@ describe('OAuth 2, client credentials method', () => {
       assert.ok(e);
       assert.equal(element.clientSecret, 'xyz');
       assert.equal(element.clientId, '123');
-      assert.equal(element.credentialsDisabled, true);
+      const f = /** @type OAuth2 */ (element[factory]);
+      assert.equal(f.credentialsDisabled, true);
     });
   });
 });

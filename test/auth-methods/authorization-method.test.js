@@ -122,7 +122,7 @@ describe('AuthorizationMethod', () => {
     function makeChange(elm) {
       const input = elm.shadowRoot.querySelector('anypoint-input[name="username"]');
       input.value = 'test';
-      input.dispatchEvent(new CustomEvent('input'));
+      input.dispatchEvent(new CustomEvent('change'));
     }
 
     it('Getter returns previously registered handler', () => {
