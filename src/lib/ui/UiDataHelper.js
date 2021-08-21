@@ -8,6 +8,7 @@ import HttpBearer from './HttpBearer.js';
 import Ntlm from './Ntlm.js';
 import OAuth1 from './OAuth1.js';
 import OAuth2 from './OAuth2.js';
+import OpenID from './OpenID.js';
 
 export class UiDataHelper {
   /**
@@ -103,6 +104,15 @@ export class UiDataHelper {
    */
   static setupOauth2(element, init) {
     const i = new OAuth2(init);
+    this.setOAuth2Values(i, element);
+    return i;
+  }
+
+  /**
+   * @param {OAuth2} i
+   * @param {AuthorizationMethodElement} element
+   */
+  static setOAuth2Values(i, element) {
     i.username = element.username;
     i.password = element.password;
     i.grantType = element.grantType;
@@ -129,6 +139,16 @@ export class UiDataHelper {
     i.pkce = element.pkce;
     i.credentialSource = element.credentialSource;
     i.allowRedirectUriChange = element.allowRedirectUriChange;
+  }
+
+  /**
+   * @param {AuthorizationMethodElement} element
+   * @param {AuthUiInit} init
+   */
+  static setupOidc(element, init) {
+    const i = new OpenID(init);
+    this.setOAuth2Values(i, element);
+    i.issuerUrl = element.issuerUrl;
     return i;
   }
 
@@ -229,5 +249,14 @@ export class UiDataHelper {
     element.pkce = ui.pkce;
     element.credentialSource = ui.credentialSource;
     element._authorizing = ui.authorizing;
+  }
+
+  /**
+   * @param {AuthorizationMethodElement} element
+   * @param {OpenID} ui
+   */
+  static populateOpenId(element, ui) {
+    this.populateOAuth2(element, ui);
+    element.issuerUrl = ui.issuerUrl;
   }
 }

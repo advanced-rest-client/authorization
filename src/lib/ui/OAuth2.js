@@ -826,19 +826,29 @@ export default class OAuth2 extends AuthUiBase {
     } = this;
     return html`
     <form autocomplete="on" class="oauth2-auth">
-      ${this.oauth2GrantTypeTemplate()}
-      ${this.credentialsSourceTemplate()}        
-      ${this.clientIdTemplate()}
-      ${this.clientSecretTemplate()}
-      ${this.oauth2CustomPropertiesTemplate()}
-      ${this.toggleAdvViewSwitchTemplate()}
-      ${this.oauth2AdvancedTemplate()}
+      
     </form>
     ${this.oauth2RedirectTemplate()}
     ${accessToken ? this.oauth2TokenTemplate() : this.oath2AuthorizeTemplate()}
     ${lastErrorMessage ? html`<p class="error-message">⚠ ${lastErrorMessage}</p>` : ''}
     <clipboard-copy></clipboard-copy>
     `;
+  }
+
+  /**
+   * @return {(TemplateResult|string)[]} The template for the <form> content.
+   */
+  formContentTemplate() {
+    const result = [
+      this.oauth2GrantTypeTemplate(),
+      this.credentialsSourceTemplate(),
+      this.clientIdTemplate(),
+      this.clientSecretTemplate(),
+      this.oauth2CustomPropertiesTemplate(),
+      this.toggleAdvViewSwitchTemplate(),
+      this.oauth2AdvancedTemplate(),
+    ];
+    return result;
   }
 
   /**

@@ -19,6 +19,7 @@ import {
   METHOD_DIGEST,
   METHOD_OAUTH1,
   METHOD_OAUTH2,
+  METHOD_OIDC,
 } from "./Utils.js";
 import { UiDataHelper } from "./lib/ui/UiDataHelper.js";
 
@@ -30,6 +31,7 @@ import { UiDataHelper } from "./lib/ui/UiDataHelper.js";
 /** @typedef {import('./lib/ui/Digest').default} Digest */
 /** @typedef {import('./lib/ui/OAuth1').default} OAuth1 */
 /** @typedef {import('./lib/ui/OAuth2').default} OAuth2 */
+/** @typedef {import('./lib/ui/OpenID').default} OpenID */
 /** @typedef {import('./types').AuthUiInit} AuthUiInit */
 /** @typedef {import('./types').GrantType} GrantType */
 /** @typedef {import('./types').Oauth2Credentials} Oauth2Credentials */
@@ -437,6 +439,10 @@ export default class AuthorizationMethodElement extends EventsTargetMixin(LitEle
        * When set it allows to edit the redirect URI by the user.
        */
       allowRedirectUriChange: { type: Boolean },
+      /** 
+       * The OpenID discovery URI.
+       */
+      issuerUrl: { type: String },
     };
   }
 
@@ -600,6 +606,8 @@ export default class AuthorizationMethodElement extends EventsTargetMixin(LitEle
     this.requestUrl = undefined;
     /** @type any */
     this.requestBody = undefined;
+    /** @type string */
+    this.issuerUrl = undefined;
 
     /** @type AuthUiBase */
     this[factory] = undefined;
@@ -643,6 +651,7 @@ export default class AuthorizationMethodElement extends EventsTargetMixin(LitEle
       case METHOD_DIGEST: UiDataHelper.populateDigest(this, /** @type Digest */ (this[factory])); break;
       case METHOD_OAUTH1: UiDataHelper.populateOAuth1(this, /** @type OAuth1 */ (this[factory])); break;
       case METHOD_OAUTH2: UiDataHelper.populateOAuth2(this, /** @type OAuth2 */ (this[factory])); break;
+      case METHOD_OIDC: UiDataHelper.populateOpenId(this, /** @type OpenID */ (this[factory])); break;
       default:
     }
   }
@@ -720,6 +729,9 @@ export default class AuthorizationMethodElement extends EventsTargetMixin(LitEle
         break;
       case METHOD_OAUTH2:
         instance = UiDataHelper.setupOauth2(this, init);
+        break;
+      case METHOD_OIDC:
+        instance = UiDataHelper.setupOidc(this, init);
         break;
       default:
         throw new Error(`Unsupported authorization type ${type}`);

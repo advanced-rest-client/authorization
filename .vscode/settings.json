@@ -5,6 +5,9 @@
     "crossorigin",
     "invalidchange",
     "jsrsasign",
-    "rollups"
+    "jwks",
+    "openid",
+    "rollups",
+    "userinfo"
   ]
 }

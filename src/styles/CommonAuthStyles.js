@@ -142,4 +142,13 @@ export default css`
   .delivery-dropdown {
     margin: 16px 0;
   }
+
+  .issuer-input {
+    display: flex;
+    align-items: center;
+  }
+
+  .issuer-input anypoint-input {
+    flex: 1;
+  }
 `;

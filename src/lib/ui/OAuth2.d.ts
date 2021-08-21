@@ -302,6 +302,10 @@ export default class OAuth2 extends AuthUiBase {
   isSourceSelected(): boolean;
 
   render(): TemplateResult;
+  /**
+   * @return The template for the <form> content.
+   */
+  formContentTemplate(): (TemplateResult|string)[];
 
   /**
    * @return The template for API custom properties (annotations)

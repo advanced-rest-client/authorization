@@ -463,6 +463,11 @@ export default class AuthorizationMethod extends EventsTargetMixin(LitElement) {
    * @attribute
    */
   allowRedirectUriChange: boolean;
+  /** 
+   * The OpenID discovery URI.
+   * @attribute
+   */
+  issuerUrl: string;
 
   onchange: EventListener | null;
 
