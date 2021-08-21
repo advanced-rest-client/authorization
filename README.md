@@ -160,23 +160,17 @@ npm test
 ## Acknowledgements
 
 - This element uses [jsrsasign](https://github.com/kjur/jsrsasign) library distributed under MIT licence.
-- This element uses [crypto-js](https://code.google.com/archive/p/crypto-js/) library distributed under BSD license.
 
 ## Required dependencies
 
-The `CryptoJS` and `RSAKey` libraries are not included into the element sources.
-If your project do not use this libraries already include it into your project.
+The `RSAKey` library is not included into the element sources.
+If your project do not use this library already include it into your project.
 
 ```sh
-npm i cryptojslib jsrsasign
+npm i jsrsasign
 ```
 
 ```html
-<script src="../../../cryptojslib/components/core.js"></script>
-<script src="../../../cryptojslib/rollups/sha1.js"></script>
-<script src="../../../cryptojslib/components/enc-base64-min.js"></script>
-<script src="../../../cryptojslib/rollups/md5.js"></script>
-<script src="../../../cryptojslib/rollups/hmac-sha1.js"></script>
 <script src="../../../jsrsasign/lib/jsrsasign-rsa-min.js"></script>
 ```
 

@@ -56,8 +56,7 @@
     "lit-html": "^1.4.1"
   },
   "peerDependencies": {
-    "cryptojslib": "^3.1.2",
-    "jsrsasign": "^10.0.5"
+    "jsrsasign": "^10.4.0"
   },
   "devDependencies": {
     "@advanced-rest-client/arc-demo-helper": "^3.0.2",
@@ -70,7 +69,6 @@
     "@web/dev-server": "^0.1.21",
     "@web/test-runner": "^0.13.16",
     "@web/test-runner-playwright": "^0.8.8",
-    "cryptojslib": "^3.1.2",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "get-port": "^5.1.1",

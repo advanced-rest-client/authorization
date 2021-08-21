@@ -3,7 +3,6 @@
     "OIDC",
     "cnonce",
     "crossorigin",
-    "cryptojslib",
     "invalidchange",
     "jsrsasign",
     "rollups"
