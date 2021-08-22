@@ -826,7 +826,7 @@ export default class OAuth2 extends AuthUiBase {
     } = this;
     return html`
     <form autocomplete="on" class="oauth2-auth">
-      
+      ${this.formContentTemplate()}
     </form>
     ${this.oauth2RedirectTemplate()}
     ${accessToken ? this.oauth2TokenTemplate() : this.oath2AuthorizeTemplate()}
@@ -883,7 +883,7 @@ export default class OAuth2 extends AuthUiBase {
       .compatibility="${anypoint}"
       .disabled="${disabled||readOnly}"
     >
-      <label slot="label">Response type</label>
+      <label slot="label">Grant type</label>
       <anypoint-listbox
         slot="dropdown-content"
         .selected="${grantType}"

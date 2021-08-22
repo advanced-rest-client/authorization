@@ -621,7 +621,7 @@ export class OAuth2Authorization {
    */
   async requestToken(url, body, optHeaders) {
     const urlInstance = new URL(url);
-    const { settings } = this;
+    const { settings, options } = this;
     let headers = /** @type Record<string, string> */ ({
       'content-type': 'application/x-www-form-urlencoded',
     });
@@ -641,7 +641,12 @@ export class OAuth2Authorization {
       method: 'POST',
       cache: 'no-cache',
     });
-    const response = await fetch(urlInstance.toString(), init);
+    let authTokenUrl = urlInstance.toString();
+    if (options.tokenProxy) {
+      const suffix = options.tokenProxyEncode ? encodeURIComponent(authTokenUrl) : authTokenUrl;
+      authTokenUrl = `${options.tokenProxy}${suffix}`;
+    }
+    const response = await fetch(authTokenUrl, init);
     const { status } = response;
     let responseBody;
     try {

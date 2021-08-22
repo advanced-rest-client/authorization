@@ -6,6 +6,9 @@ import '@anypoint-web-components/anypoint-radio-button/anypoint-radio-group.js';
 import '@anypoint-web-components/anypoint-checkbox/anypoint-checkbox.js';
 import '../oauth2-authorization.js';
 import '../authorization-method.js';
+import env from './env.js';
+
+console.log(env);
 
 class ComponentDemo extends DemoPage {
   constructor() {
@@ -25,7 +28,8 @@ class ComponentDemo extends DemoPage {
       'openIdChangesCounter',
       'oauth2BaseUriEnabled',
       'credentialsSource',
-      'allowRedirectUriChange'
+      'allowRedirectUriChange',
+      'issuerUri',
     ]);
     this.componentName = 'authorization-method';
     this.darkThemeActive = false;
@@ -51,7 +55,17 @@ class ComponentDemo extends DemoPage {
     this.authorizationUri = new URL('/demo/oauth-authorize.html', window.location.href).toString();
     this.accessTokenUri = `${window.location.origin}/auth/token`;
     this.credentialsSource = [{grantType: 'client_credentials', credentials: [{name: 'My social Network', clientId: '123', clientSecret: 'xyz'}, {name: 'My social Network 2', clientId: '1234', clientSecret: 'wxyz'}]}];
-    this.issuerUri = 'https://accounts.google.com/.well-known/openid-configuration';
+    // this.issuerUri = 'https://accounts.google.com/';
+    this.issuerUri = env.oauth2.issuer;
+    this.issuers = [
+      env.oauth2.issuer,
+      'https://accounts.google.com/',
+      'https://login.salesforce.com/',
+      'https://phantauth.net/',
+      'https://www.paypalobjects.com/',
+      'https://api.login.yahoo.com/',
+      'https://login.microsoftonline.com/fabrikamb2c.onmicrosoft.com/v2.0/'
+    ];
 
     window.addEventListener('oauth1-token-requested', this._oauth1TokenHandler.bind(this));
   }
@@ -129,6 +143,14 @@ class ComponentDemo extends DemoPage {
       }
     });
     document.body.dispatchEvent(e);
+  }
+
+  /**
+   * @param {Event} e
+   */
+  _issuerHandler(e) {
+    const input = /** @type HTMLInputElement */ (e.target);
+    this.issuerUri = input.value;
   }
 
   _demoTemplate() {
@@ -467,6 +489,8 @@ class ComponentDemo extends DemoPage {
       oauth2BaseUriEnabled,
       credentialsSource,
       allowRedirectUriChange,
+      issuerUri,
+      issuers,
     } = this;
     const baseUri = oauth2BaseUriEnabled ? 'https://api.domain.com/auth/' : undefined;
     return html`
@@ -486,7 +510,7 @@ class ComponentDemo extends DemoPage {
           redirectUri="${oauth2redirect}"
           clientId="test-client-id"
           grantType="authorization_code"
-          issuerUrl="${this.issuerUri}"
+          issuerUrl="${issuerUri}"
           ?allowRedirectUriChange="${allowRedirectUriChange}"
           .credentialsSource="${credentialsSource}"
           .baseUri="${baseUri}"
@@ -505,6 +529,16 @@ class ComponentDemo extends DemoPage {
           name="allowRedirectUriChange"
           @change="${this._toggleMainOption}">Allow redirect URI change</anypoint-checkbox>
       </arc-interactive-demo>
+
+      <div>
+        <label for="issuer-uri">Issuer URI:</label>
+        <input list="issuer-uris" id="issuer-uri" name="issuer-uri" .value="${issuerUri}" @change="${this._issuerHandler}" />
+
+        <datalist id="issuer-uris">
+          ${issuers.map(uri => html`<option value="${uri}"></option>`)}
+        </datalist>
+      </div>
+      
       <p>Change events counter: ${openIdChangesCounter}</p>
     </section>
     `;
@@ -512,7 +546,7 @@ class ComponentDemo extends DemoPage {
 
   contentTemplate() {
     return html`
-      <oauth2-authorization></oauth2-authorization>
+      <oauth2-authorization tokenProxy="${env.oauth2.tokenProxy}" tokenProxyEncode=''></oauth2-authorization>
       <h2>Authorization method</h2>
       ${this._demoTemplate()}
       ${this._demoBasic()}

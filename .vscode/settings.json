@@ -8,6 +8,8 @@
     "jwks",
     "openid",
     "rollups",
+    "tokenproxy",
+    "tokenproxyencode",
     "userinfo"
   ]
 }

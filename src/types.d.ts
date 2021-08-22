@@ -55,6 +55,18 @@ export declare interface ProcessingOptions {
    * Defaults to `1020`.
    */
   iframeTimeout?: number;
+  /** 
+   * When set it uses this value to prefix the call to the 
+   * OAuth 2 token endpoint. This is to support use cases when 
+   * the requests should be proxied through a server to avoid CORS problems.
+   */
+  tokenProxy?: string;
+   /** 
+    * When set it encodes the token URI value before adding it to the 
+    * `tokenProxy`. This is to be used when the proxy takes the target 
+    * URL as a query parameter.
+    */
+  tokenProxyEncode?: boolean;
 }
 
 /**
