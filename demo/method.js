@@ -55,8 +55,8 @@ class ComponentDemo extends DemoPage {
     this.authorizationUri = new URL('/demo/oauth-authorize.html', window.location.href).toString();
     this.accessTokenUri = `${window.location.origin}/auth/token`;
     this.credentialsSource = [{grantType: 'client_credentials', credentials: [{name: 'My social Network', clientId: '123', clientSecret: 'xyz'}, {name: 'My social Network 2', clientId: '1234', clientSecret: 'wxyz'}]}];
-    // this.issuerUri = 'https://accounts.google.com/';
-    this.issuerUri = env.oauth2.issuer;
+    this.issuerUri = 'https://accounts.google.com/';
+    // this.issuerUri = env.oauth2.issuer;
     this.issuers = [
       env.oauth2.issuer,
       'https://accounts.google.com/',
@@ -508,7 +508,8 @@ class ComponentDemo extends DemoPage {
           type="open id"
           slot="content"
           redirectUri="${oauth2redirect}"
-          clientId="test-client-id"
+          clientId="1076318174169-5i48tqquddrk0lv0shbtsaj6kc8c9j5g.apps.googleusercontent.com"
+          clientSecret="SF3kI7tqI_BUdc5ACkJ4vjII"
           grantType="authorization_code"
           issuerUrl="${issuerUri}"
           ?allowRedirectUriChange="${allowRedirectUriChange}"
@@ -532,11 +533,9 @@ class ComponentDemo extends DemoPage {
 
       <div>
         <label for="issuer-uri">Issuer URI:</label>
-        <input list="issuer-uris" id="issuer-uri" name="issuer-uri" .value="${issuerUri}" @change="${this._issuerHandler}" />
-
-        <datalist id="issuer-uris">
-          ${issuers.map(uri => html`<option value="${uri}"></option>`)}
-        </datalist>
+        <select id="issuer-uri" name="issuer-uri" @change="${this._issuerHandler}" @blur="${this._issuerHandler}">
+          ${issuers.map(uri => html`<option ?selected="${uri === issuerUri}" value="${uri}">${uri}</option>`)}
+        </select>
       </div>
       
       <p>Change events counter: ${openIdChangesCounter}</p>

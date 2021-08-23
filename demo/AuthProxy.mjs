@@ -1,4 +1,5 @@
 import http from 'http';
+import https from 'https';
 
 /**
  * A server that proxies oauth 2 token requests from the client to the 
@@ -82,7 +83,7 @@ export class AuthProxy {
     }
 
     if (!proxied.startsWith('https://') && !proxied.startsWith('http://')) {
-      this._sendError(req, res, `token url must use https: scheme. "${proxied}" given.`);
+      this._sendError(req, res, `token url must use http(s): scheme. "${proxied}" given.`);
       return;
     }
 
@@ -95,10 +96,10 @@ export class AuthProxy {
     });
     try {
       const result = await this._proxy(req, proxied);
-      const { buffer, headers } = result;
+      const { buffer, headers, code=200 } = result;
       const corsHeaders = this._getCors(headers);
       const finalHeaders = { ...headers, ...corsHeaders };
-      res.writeHead(200, finalHeaders);
+      res.writeHead(code, finalHeaders);
       res.end(buffer);
     } catch (e) {
       console.error(e);
@@ -150,8 +151,9 @@ export class AuthProxy {
   async _proxy(req, url) {
     const body = await this._readBody(req);
     return new Promise((resolve, reject) => {
-      const client = http.request(url, {
-        headers: req.headers,
+      const lib = url.startsWith('https://') ? https : http;
+      const client = lib.request(url, {
+        headers: this._proxyHeaders(req),
         method: req.method,
       }, async (res) => {
         const buffers = [];
@@ -161,14 +163,37 @@ export class AuthProxy {
         resolve({
           buffer: Buffer.concat(buffers),
           headers: res.headers,
+          code: res.code,
         });
       });
       client.on('error', (e) => {
+        console.error(`Error making connection to ${url}`);
         reject(e);
       });
       client.write(body);
       client.end();
     });
+  }
+
+  /**
+   * @param {http.IncomingMessage} req
+   * @returns {http.IncomingHttpHeaders}
+   */
+  _proxyHeaders(req) {
+    const headers = { ...(req.headers || {}) };
+    delete headers.host;
+    delete headers.connection;
+    delete headers.accept;
+    delete headers.origin;
+    delete headers.referer;
+    delete headers['sec-ch-ua'];
+    delete headers['sec-ch-ua-mobile'];
+    delete headers['sec-ch-ua-platform'];
+    delete headers['user-agent'];
+    delete headers['sec-fetch-site'];
+    delete headers['sec-fetch-mode'];
+    delete headers['sec-fetch-dest'];
+    return headers;
   }
 
   /**
