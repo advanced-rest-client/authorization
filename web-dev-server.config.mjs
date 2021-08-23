@@ -11,6 +11,9 @@ let oauth2env;
 
 /* eslint-disable consistent-return */
 export default /** @type DevServerConfig */ ({
+  // http2: true,
+  // sslKey: 'demo/private.key',
+  // sslCert: 'demo/private.pem',
   plugins: [
     {
       name: 'auth',
