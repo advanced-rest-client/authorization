@@ -257,12 +257,18 @@ describe('OAuth2', () => {
         assert.isBelow(verifier.length, 129); // max length 128 characters
       });
 
-      it('sets client_secret and client_id', async () => {
+      it('sets the client_id', async () => {
         const cnf = { ...baseSettings, clientSecret: 'secret', grantType };
         const auth = new OAuth2Authorization(cnf);
         const result = await auth.constructPopupUrl();
-        assert.isTrue(result.includes('client_secret=secret'));
         assert.isTrue(result.includes('client_id=test+client+id'));
+      });
+
+      it('does not set client_secret', async () => {
+        const cnf = { ...baseSettings, clientSecret: 'secret', grantType };
+        const auth = new OAuth2Authorization(cnf);
+        const result = await auth.constructPopupUrl();
+        assert.isFalse(result.includes('client_secret=secret'));
       });
     });
   

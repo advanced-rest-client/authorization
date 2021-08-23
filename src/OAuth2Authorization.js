@@ -237,9 +237,10 @@ export class OAuth2Authorization {
     const url = new URL(settings.authorizationUri);
     url.searchParams.set('response_type', type);
     url.searchParams.set('client_id', settings.clientId);
-    if (settings.clientSecret) {
-      url.searchParams.set('client_secret', settings.clientSecret);
-    }
+    // Client secret cannot be ever exposed to the client (browser)!
+    // if (settings.clientSecret) {
+    //   url.searchParams.set('client_secret', settings.clientSecret);
+    // }
     url.searchParams.set('state', this.state);
     if (settings.redirectUri) {
       url.searchParams.set('redirect_uri', settings.redirectUri);
