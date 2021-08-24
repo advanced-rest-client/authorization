@@ -211,3 +211,16 @@ export function readUrlValue(url, baseUri) {
   }
   return url;
 }
+
+/**
+ * Generates cryptographically significant random string.
+ * @param {number=} [size=20] The size of the generated nonce.
+ * @returns {string} A nonce (number used once).
+ */
+export function nonceGenerator(size=20) {
+  const validChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let array = new Uint8Array(size);
+  window.crypto.getRandomValues(array);
+  array = array.map(x => validChars.charCodeAt(x % validChars.length));
+  return String.fromCharCode.apply(null, array);
+}

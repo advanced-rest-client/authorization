@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable class-methods-use-this */
 
-import { sanityCheck, randomString, camel, generateCodeChallenge } from './Utils.js';
+import { sanityCheck, randomString, camel, generateCodeChallenge, nonceGenerator } from './Utils.js';
 import { applyCustomSettingsQuery, applyCustomSettingsBody, applyCustomSettingsHeaders } from './CustomParameters.js';
 import { AuthorizationError, CodeError } from './AuthorizationError.js';
 import { IframeAuthorization } from './lib/IframeAuthorization.js';
@@ -230,7 +230,7 @@ export class OAuth2Authorization {
       implicit: 'token',
       authorization_code: 'code',
     };
-    const type = mapping[settings.grantType];
+    const type = settings.responseType || mapping[settings.grantType];
     if (!type) {
       return null;
     }
@@ -273,6 +273,10 @@ export class OAuth2Authorization {
       if (cs) {
         applyCustomSettingsQuery(url, cs);
       }
+    }
+    // ID token nonce
+    if (typeof settings.responseType === 'string' && settings.responseType.includes('id_token')) {
+      url.searchParams.set('nonce', nonceGenerator());
     }
     return url.toString();
   }
@@ -393,8 +397,11 @@ export class OAuth2Authorization {
       this[reportOAuthError]('Invalid response from the redirect page');
       return;
     }
-    if (params.has('error') || params.has('access_token') || params.has('code')) {
+    if (params.has('error') || params.has('access_token') || params.has('code') || params.has('id_token')) {
       this[processTokenResponse](params);
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn('Unprocessable authorization response', raw);
     }
   }
 
@@ -418,8 +425,8 @@ export class OAuth2Authorization {
       this[reportOAuthError](...this[createTokenResponseError](oauthParams));
       return;
     }
-    const { grantType } = this.settings;
-    if (grantType === 'implicit') {
+    const { grantType, responseType } = this.settings;
+    if (grantType === 'implicit' || responseType === 'id_token') {
       this[handleTokenInfo](this[tokenInfoFromParams](oauthParams));
       return;
     }
@@ -502,12 +509,14 @@ export class OAuth2Authorization {
    */
   [tokenInfoFromParams](oauthParams) {
     const accessToken = oauthParams.get('access_token');
+    const idToken = oauthParams.get('id_token');
     const refreshToken = oauthParams.get('refresh_token');
     const tokenType = oauthParams.get('token_type');
     const expiresIn = Number(oauthParams.get('expires_in'));
     const scope = this[computeTokenInfoScopes](oauthParams.get('scope'));
     const tokenInfo = /** @type TokenInfo */ ({
       accessToken,
+      idToken,
       refreshToken,
       tokenType,
       expiresIn,

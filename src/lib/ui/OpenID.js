@@ -5,6 +5,7 @@ import { inputTemplate } from '../../CommonTemplates.js';
 
 /** @typedef {import('lit-element').TemplateResult} TemplateResult */
 /** @typedef {import('@anypoint-web-components/anypoint-listbox').AnypointListbox} AnypointListbox */
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.OAuth2Authorization} OAuth2Authorization */
 /** @typedef {import('../../types').AuthUiInit} AuthUiInit */
 /** @typedef {import('../../types').OpenIdProviderMetadata} OpenIdProviderMetadata */
 /** @typedef {import('../../types').GrantType} GrantType */
@@ -26,6 +27,8 @@ export const ResponseTypeLabels = {
   id_token: 'ID token',
   id: 'ID token',
 };
+
+export const discoveryCache = new Map();
 
 /**
  * @return {GrantType[]} The default grant types for OIDC
@@ -51,6 +54,10 @@ export default class OpenID extends OAuth2 {
     this.discovered = false;
     /** @type string */
     this.issuerUrl = undefined;
+    /** @type string */
+    this.idToken = undefined;
+    /** @type number */
+    this.expiresAt = undefined;
     /** @type Oauth2ResponseType[][] */
     this.supportedResponses = undefined;
     /** 
@@ -63,6 +70,35 @@ export default class OpenID extends OAuth2 {
     this._issuerUriHandler = this._issuerUriHandler.bind(this);
     this._issuerReadHandler = this._issuerReadHandler.bind(this);
     this._responseTypeSelectionHandler = this._responseTypeSelectionHandler.bind(this);
+  }
+
+  /**
+   * Serialized input values
+   * @return {OAuth2Authorization} An object with user input
+   */
+  serialize() {
+    const result = super.serialize();
+    const { selectedResponse=0, supportedResponses=[] } = this;
+    const response = supportedResponses[selectedResponse];
+    if (response) {
+      result.responseType = response.map(i => i.type).join(' ');
+    }
+    return result;
+  }
+
+  async authorize() {
+    const info = await super.authorize();
+    const { idToken, expiresIn, expiresAt } = info;
+    this.idToken = idToken;
+    if (expiresAt) {
+      this.expiresAt = expiresAt;
+    } else {
+      const d = new Date(expiresIn);
+      d.setDate(d.getDate() + expiresIn);
+      this.expiresAt = d.getTime();
+    }
+    this.requestUpdate();
+    return info;
   }
 
   /**
@@ -99,11 +135,20 @@ export default class OpenID extends OAuth2 {
    */
   async discover() {
     const { issuerUrl } = this;
+    const oidcUrl = this.buildIssuerUrl(issuerUrl);
+    if (discoveryCache.has(oidcUrl)) {
+      const info = discoveryCache.get(oidcUrl);
+      this.propagateOidc(info);
+      this.discovered = true;
+      this.notifyChange();
+      return;
+    }
     this.lastErrorMessage = undefined;
     this.requestUpdate();
     try {
-      const rsp = await fetch(this.buildIssuerUrl(issuerUrl));
+      const rsp = await fetch(oidcUrl);
       const info = await rsp.json();
+      discoveryCache.set(oidcUrl, info);
       this.propagateOidc(info);
       this.discovered = true;
       this.notifyChange();
@@ -304,5 +349,40 @@ export default class OpenID extends OAuth2 {
       .compatibility="${this.anypoint}"
     >${label}</anypoint-item>
     `;
+  }
+
+  /**
+   * @returns {TemplateResult|string} The template for the OAuth 2 token value
+   */
+  oauth2TokenTemplate() {
+    const { accessToken, idToken } = this;
+    const tokens = [];
+    if (accessToken) {
+      tokens.push(this.tokenField('access_token', accessToken, 'Access token'));
+    }
+    if (idToken) {
+      tokens.push(this.tokenField('id_token', idToken, 'ID token'));
+    }
+    return html`
+    <div class="current-tokens">
+      ${tokens}
+    </div>`;
+  }
+
+  /**
+   * 
+   * @param {string} type 
+   * @param {string} code 
+   * @param {string} label 
+   * @returns 
+   */
+  tokenField(type, code, label) {
+    return html`
+    <div class="current-token">
+      <label class="token-label">${label}</label>
+      <p class="read-only-param-field padding">
+        <span class="code" @click="${this._clickCopyAction}" @keydown="${this._copyKeydownHandler}">${code}</span>
+      </p>
+    </div>`;
   }
 }

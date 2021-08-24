@@ -106,3 +106,10 @@ export function generateState(): string;
  * @return The final URL value.
  */
 export function readUrlValue(url: string, baseUri: string): string;
+
+/**
+ * Generates cryptographically significant random string.
+ * @param size The size of the generated nonce.
+ * @returns A nonce (number used once).
+ */
+export function nonceGenerator(size?: number): string;
