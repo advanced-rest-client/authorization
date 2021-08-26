@@ -151,4 +151,33 @@ export default css`
   .issuer-input anypoint-input {
     flex: 1;
   }
+
+  .tokens-title {
+    margin: 12px 8px;
+    font-weight: bold;
+  }
+
+  .token-option {
+    display: flex;
+    align-items: baseline;
+  }
+
+  .token-option input[type=radio] {
+    margin: 8px;
+  }
+
+  .token-option .token-info {
+    overflow: hidden;
+  }
+
+  .token-value {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  .token-option .token-label {
+    margin: 8px 0;
+    display: block;
+  }
 `;

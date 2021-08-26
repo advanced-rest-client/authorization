@@ -113,3 +113,5 @@ export function readUrlValue(url: string, baseUri: string): string;
  * @returns A nonce (number used once).
  */
 export function nonceGenerator(size?: number): string;
+
+export function selectNode(node: Element): void;

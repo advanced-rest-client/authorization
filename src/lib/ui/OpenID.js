@@ -1,11 +1,16 @@
 /* eslint-disable class-methods-use-this */
 import { html } from "lit-html";
+import { AuthorizationEvents } from "@advanced-rest-client/arc-events";
+import '@github/time-elements';
 import OAuth2 from './OAuth2.js';
 import { inputTemplate } from '../../CommonTemplates.js';
+import { generateState, selectNode } from "../../Utils.js";
 
 /** @typedef {import('lit-element').TemplateResult} TemplateResult */
 /** @typedef {import('@anypoint-web-components/anypoint-listbox').AnypointListbox} AnypointListbox */
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OAuth2Authorization} OAuth2Authorization */
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.OidcTokenInfo} OidcTokenInfo */
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.OidcTokenError} OidcTokenError */
 /** @typedef {import('../../types').AuthUiInit} AuthUiInit */
 /** @typedef {import('../../types').OpenIdProviderMetadata} OpenIdProviderMetadata */
 /** @typedef {import('../../types').GrantType} GrantType */
@@ -54,8 +59,10 @@ export default class OpenID extends OAuth2 {
     this.discovered = false;
     /** @type string */
     this.issuerUrl = undefined;
-    /** @type string */
-    this.idToken = undefined;
+    /** @type {(OidcTokenInfo | OidcTokenError)[]} */
+    this.tokens = undefined;
+    /** @type number */
+    this.selectedToken = undefined;
     /** @type number */
     this.expiresAt = undefined;
     /** @type Oauth2ResponseType[][] */
@@ -70,6 +77,8 @@ export default class OpenID extends OAuth2 {
     this._issuerUriHandler = this._issuerUriHandler.bind(this);
     this._issuerReadHandler = this._issuerReadHandler.bind(this);
     this._responseTypeSelectionHandler = this._responseTypeSelectionHandler.bind(this);
+    this._selectNodeHandler = this._selectNodeHandler.bind(this);
+    this._selectedTokenHandler = this._selectedTokenHandler.bind(this);
   }
 
   /**
@@ -78,27 +87,57 @@ export default class OpenID extends OAuth2 {
    */
   serialize() {
     const result = super.serialize();
-    const { selectedResponse=0, supportedResponses=[] } = this;
+    delete result.accessToken;
+    const { selectedResponse=0, supportedResponses=[], tokens, selectedToken=0 } = this;
     const response = supportedResponses[selectedResponse];
     if (response) {
       result.responseType = response.map(i => i.type).join(' ');
+    }
+    if (Array.isArray(tokens)) {
+      result.accessToken = this.readTokenValue(/** @type OidcTokenInfo */ (tokens[selectedToken]));
     }
     return result;
   }
 
   async authorize() {
-    const info = await super.authorize();
-    const { idToken, expiresIn, expiresAt } = info;
-    this.idToken = idToken;
-    if (expiresAt) {
-      this.expiresAt = expiresAt;
-    } else {
-      const d = new Date(expiresIn);
-      d.setDate(d.getDate() + expiresIn);
-      this.expiresAt = d.getTime();
+    if (this.lastErrorMessage) {
+      this.lastErrorMessage = undefined;
     }
+    const validationResult = this.target.validate();
+    if (!validationResult) {
+      return null;
+    }
+    this.authorizing = true;
     this.requestUpdate();
-    return info;
+    this.notifyChange();
+    const detail = this.serialize();
+    const state = generateState();
+    detail.state = state;
+
+    try {
+      const tokens = await AuthorizationEvents.Oidc.authorize(this.target, detail);
+      this.authorizing = false;
+      this.requestUpdate();
+      this.notifyChange();
+      if (!Array.isArray(tokens) || !tokens.length) {
+        return null;
+      }
+      this.tokens = tokens;
+      this.accessToken = undefined;
+      this.selectedToken = 0;
+      this.requestUpdate();
+      this.notifyChange();
+    } catch (e) {
+      const { message = 'Unknown error' } = e;
+      this.lastErrorMessage = message;
+      this.authorizing = false;
+      this.requestUpdate();
+      this.notifyChange();
+      throw e;
+    }
+
+    this.requestUpdate();
+    return null;
   }
 
   /**
@@ -242,9 +281,59 @@ export default class OpenID extends OAuth2 {
     return result;
   }
 
+  /**
+   * A handler to select the contents of the node that is the event's target.
+   * @param {Event} e
+   */
+  _selectNodeHandler(e) {
+    const node = /** @type HTMLElement */ (e.target);
+    selectNode(node);
+  }
+
+  /**
+   * @param {Event} e
+   */
+  _selectedTokenHandler(e) {
+    const input = /** @type HTMLInputElement */ (e.target);
+    const { value } = input;
+    if (!input.checked) {
+      return;
+    }
+    this.selectedToken = Number(value);
+    this.notifyChange();
+  }
+
+  /**
+   * @param {OidcTokenInfo|OidcTokenError} token
+   */
+  readTokenLabel(token) {
+    const { responseType } = token;
+    switch (responseType) {
+      case 'token': return 'Access token';
+      case 'code': return 'Access token from code exchange';
+      case 'id_token': 
+      case 'id': return 'ID token'; 
+      default: return 'Unknown token';
+    }
+  }
+
+  /**
+   * @param {OidcTokenInfo} token
+   */
+  readTokenValue(token) {
+    const { responseType } = token;
+    switch (responseType) {
+      case 'token': return token.accessToken;
+      case 'code': return token.accessToken;
+      case 'id_token': 
+      case 'id': return token.idToken;
+      default: return token.accessToken || token.refreshToken || token.idToken || '';
+    }
+  }
+
   render() {
     const {
-      accessToken,
+      tokens,
       lastErrorMessage,
       discovered,
     } = this;
@@ -254,7 +343,7 @@ export default class OpenID extends OAuth2 {
       ${discovered ? this.formContentTemplate() : ''}
     </form>
     ${this.oauth2RedirectTemplate()}
-    ${accessToken ? this.oauth2TokenTemplate() : this.oath2AuthorizeTemplate()}
+    ${Array.isArray(tokens) && tokens.length ? this.oauth2TokenTemplate() : this.oath2AuthorizeTemplate()}
     ${lastErrorMessage ? html`<p class="error-message">⚠ ${lastErrorMessage}</p>` : ''}
     <clipboard-copy></clipboard-copy>
     `;
@@ -355,34 +444,98 @@ export default class OpenID extends OAuth2 {
    * @returns {TemplateResult|string} The template for the OAuth 2 token value
    */
   oauth2TokenTemplate() {
-    const { accessToken, idToken } = this;
-    const tokens = [];
-    if (accessToken) {
-      tokens.push(this.tokenField('access_token', accessToken, 'Access token'));
-    }
-    if (idToken) {
-      tokens.push(this.tokenField('id_token', idToken, 'ID token'));
-    }
+    const { tokens, authorizing, anypoint } = this;
     return html`
     <div class="current-tokens">
-      ${tokens}
+      <p class="tokens-title">Tokens</p>
+      ${tokens.map((info, index) => this.tokenTemplate(info, index))}
+
+      <div class="authorize-actions">
+        <anypoint-button
+          ?disabled="${authorizing}"
+          class="auth-button"
+          ?compatibility="${anypoint}"
+          emphasis="medium"
+          data-type="refresh-token"
+          @click="${this.authorize}"
+        >Refresh tokens</anypoint-button>
+      </div>
     </div>`;
   }
 
   /**
-   * 
-   * @param {string} type 
-   * @param {string} code 
-   * @param {string} label 
+   * @param {OidcTokenInfo | OidcTokenError} token 
+   * @param {number} index
    * @returns 
    */
-  tokenField(type, code, label) {
+  tokenTemplate(token, index) {
+    const typedError = /** @type OidcTokenError */ (token);
+    if (typedError.error) {
+      return this.errorTokenTemplate(typedError);
+    }
+    return this.infoTokenTemplate(/** @type OidcTokenInfo */ (token), index);
+  }
+
+  /**
+   * @param {OidcTokenError} token
+   */
+  errorTokenTemplate(token) {
+    const { error, errorDescription } = token;
+    const label = this.readTokenLabel(token);
     return html`
     <div class="current-token">
       <label class="token-label">${label}</label>
       <p class="read-only-param-field padding">
-        <span class="code" @click="${this._clickCopyAction}" @keydown="${this._copyKeydownHandler}">${code}</span>
+        <span class="code">${error}: ${errorDescription}</span>
       </p>
     </div>`;
+  }
+
+  /**
+   * @param {OidcTokenInfo} token
+   * @param {number} index
+   */
+  infoTokenTemplate(token, index) {
+    const { responseType } = token;
+    const label = this.readTokenLabel(token);
+    const value = this.readTokenValue(token);
+    return html`
+    <div class="token-option">
+      <input 
+        type="radio" 
+        id="${responseType}" 
+        name="selectedToken" 
+        .value="${String(index)}" 
+        ?checked="${this.selectedToken === index}"
+        @change="${this._selectedTokenHandler}"
+      >
+      <div class="token-info">
+        <label for="${responseType}" class="token-label">
+          ${label}
+        </label>
+        ${this.tokenExpirationTemplate(token)}
+        <div class="token-value code" title="${value}" @click="${this._selectNodeHandler}" @keydown="${this._copyKeydownHandler}">${value.trim()}</div>
+      </div>
+    </div>
+    `;
+  }
+
+  /**
+   * @param {OidcTokenInfo} token
+   */
+  tokenExpirationTemplate(token) {
+    const { time, expiresIn } = token;
+    if (!time || !expiresIn) {
+      return '';
+    }
+    const d = new Date(time + (expiresIn*1000));
+    const expTime = d.toISOString();
+    const expired = Date.now() > d.getTime();
+    const label = expired ? 'Expired' : 'Expires';
+    return html`
+    <div class="token-expires">
+      ${label} <relative-time datetime="${expTime}"></relative-time>
+    </div>
+    `;
   }
 }

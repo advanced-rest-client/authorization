@@ -10,7 +10,7 @@ import '@advanced-rest-client/arc-icons/arc-icon.js';
 import { passwordTemplate, inputTemplate } from '../../CommonTemplates.js';
 import AuthUiBase from "./AuthUiBase.js";
 import '../../../oauth2-scope-selector.js';
-import { CUSTOM_CREDENTIALS, generateState, readUrlValue, validateRedirectUri } from "../../Utils.js";
+import { CUSTOM_CREDENTIALS, generateState, readUrlValue, selectNode, validateRedirectUri } from "../../Utils.js";
 
 /** @typedef {import('lit-element').TemplateResult} TemplateResult */
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OAuth2Authorization} OAuth2Authorization */
@@ -53,26 +53,6 @@ export const oauth2GrantTypes = [
 ];
 
 /**
- * @param {Element} node
- */
-const makeNodeSelection = (node) => {
-  const { body } = document;
-  // @ts-ignore
-  if (body.createTextRange) {
-    // @ts-ignore
-    const range = body.createTextRange();
-    range.moveToElementText(node);
-    range.select();
-  } else if (window.getSelection) {
-    const selection = window.getSelection();
-    const range = document.createRange();
-    range.selectNode(node);
-    selection.removeAllRanges();
-    selection.addRange(range);
-  }
-};
-
-/**
  * A handler for `focus` event on a label that contains text and
  * should be copied to clipboard when user is interacting with it.
  *
@@ -80,7 +60,7 @@ const makeNodeSelection = (node) => {
  */
 const selectFocusable = (e) => {
   const node = /** @type {HTMLElement} */ (e.target);
-  makeNodeSelection(node);
+  selectNode(node);
 };
 
 export default class OAuth2 extends AuthUiBase {
@@ -637,7 +617,7 @@ export default class OAuth2 extends AuthUiBase {
     if (elm.copy()) {
       // this.shadowRoot.querySelector('#clipboardToast').opened = true;
     }
-    setTimeout(() => makeNodeSelection(node));
+    setTimeout(() => selectNode(node));
   }
 
   /**

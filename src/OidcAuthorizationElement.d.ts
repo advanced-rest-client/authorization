@@ -4,11 +4,7 @@ import { Authorization } from '@advanced-rest-client/arc-types'
 
 export declare const authorizeHandler: unique symbol;
 
-/**
- * An element that utilizes the `OAuth2Authorization` class in a web component.
- * It handles DOM events to perform the authorization.
- */
-export class OAuth2AuthorizationElement extends EventsTargetMixin(HTMLElement) {
+export default class OidcAuthorizationElement extends EventsTargetMixin(HTMLElement) {
   /** 
    * When set it uses this value to prefix the call to the 
    * OAuth 2 token endpoint. This is to support use cases when 
@@ -39,5 +35,5 @@ export class OAuth2AuthorizationElement extends EventsTargetMixin(HTMLElement) {
    *
    * @param settings The authorization configuration.
    */
-  authorize(settings: Authorization.OAuth2Authorization): Promise<Authorization.TokenInfo>;
+  authorize(settings: Authorization.OAuth2Authorization): Promise<(Authorization.OidcTokenInfo | Authorization.OidcTokenError)[]>;
 }

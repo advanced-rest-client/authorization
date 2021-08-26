@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable class-methods-use-this */
 
-import { sanityCheck, randomString, camel, generateCodeChallenge, nonceGenerator } from './Utils.js';
+import { sanityCheck, randomString, camel, generateCodeChallenge } from './Utils.js';
 import { applyCustomSettingsQuery, applyCustomSettingsBody, applyCustomSettingsHeaders } from './CustomParameters.js';
 import { AuthorizationError, CodeError } from './AuthorizationError.js';
 import { IframeAuthorization } from './lib/IframeAuthorization.js';
@@ -9,6 +9,7 @@ import { PopupAuthorization } from './lib/PopupAuthorization.js';
 
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OAuth2Authorization} OAuth2Settings */
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.TokenInfo} TokenInfo */
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.OidcTokenInfo} OidcTokenInfo */
 /** @typedef {import('./types').ProcessingOptions} ProcessingOptions */
 
 export const resolveFunction = Symbol('resolveFunction');
@@ -29,7 +30,6 @@ export const tokenResponse = Symbol('tokenResponse');
 export const messageHandler = Symbol('messageHandler');
 export const iframeValue = Symbol('iframeValue');
 export const processPopupRawData = Symbol('processPopupRawData');
-export const processTokenResponse = Symbol('processTokenResponse');
 export const handleTokenInfo = Symbol('handleTokenInfo');
 export const computeTokenInfoScopes = Symbol('computeTokenInfoScopes');
 export const computeExpires = Symbol('computeExpires');
@@ -38,12 +38,15 @@ export const frameTimeoutHandler = Symbol('frameTimeoutHandler');
 export const reportOAuthError = Symbol('reportOAuthError');
 export const authorizePopup = Symbol('authorizePopup');
 export const authorizeTokenNonInteractive = Symbol('authorizeTokenNonInteractive');
-export const createTokenResponseError = Symbol('createTokenResponseError');
 export const createErrorParams = Symbol('createErrorParams');
-export const tokenInfoFromParams = Symbol('tokenInfoFromParams');
-export const processCodeResponse = Symbol('processCodeResponse');
 export const handleTokenCodeError = Symbol('handleTokenCodeError');
 export const codeVerifierValue = Symbol('codeVerifierValue');
+export const tokenInfoFromParams = Symbol('tokenInfoFromParams');
+
+export const grantResponseMapping = {
+  implicit: 'token',
+  authorization_code: 'code',
+};
 
 /**
  * A library that performs OAuth 2 authorization.
@@ -225,12 +228,19 @@ export class OAuth2Authorization {
    * @return {Promise<string>} Full URL for the endpoint.
    */
   async constructPopupUrl() {
+    const url = await this.buildPopupUrlParams();
+    if (!url) {
+      return null;
+    }
+    return url.toString();
+  }
+
+  /**
+   * @returns {Promise<URL>} The parameters to build popup URL.
+   */
+  async buildPopupUrlParams() {
     const { settings } = this;
-    const mapping = {
-      implicit: 'token',
-      authorization_code: 'code',
-    };
-    const type = settings.responseType || mapping[settings.grantType];
+    const type = /** @type string */ (settings.responseType || grantResponseMapping[settings.grantType]);
     if (!type) {
       return null;
     }
@@ -261,7 +271,7 @@ export class OAuth2Authorization {
       // this is Google specific
       url.searchParams.set('prompt', 'none');
     }
-    if (settings.pkce && type === 'code') {
+    if (settings.pkce && String(type).includes('code')) {
       this[codeVerifierValue] = randomString();
       const challenge = await generateCodeChallenge(this[codeVerifierValue]);
       url.searchParams.set('code_challenge', challenge);
@@ -274,11 +284,7 @@ export class OAuth2Authorization {
         applyCustomSettingsQuery(url, cs);
       }
     }
-    // ID token nonce
-    if (typeof settings.responseType === 'string' && settings.responseType.includes('id_token')) {
-      url.searchParams.set('nonce', nonceGenerator());
-    }
-    return url.toString();
+    return url;
   }
 
   /**
@@ -390,6 +396,7 @@ export class OAuth2Authorization {
     if (!raw) {
       return;
     }
+    /** @type URLSearchParams */
     let params;
     try {
       params = new URLSearchParams(raw);
@@ -397,8 +404,8 @@ export class OAuth2Authorization {
       this[reportOAuthError]('Invalid response from the redirect page');
       return;
     }
-    if (params.has('error') || params.has('access_token') || params.has('code') || params.has('id_token')) {
-      this[processTokenResponse](params);
+    if (this.validateTokenResponse(params)) {
+      this.processTokenResponse(params);
     } else {
       // eslint-disable-next-line no-console
       console.warn('Unprocessable authorization response', raw);
@@ -406,10 +413,24 @@ export class OAuth2Authorization {
   }
 
   /**
+   * @param {URLSearchParams} params The instance of search params with the response from the auth dialog.
+   * @returns {boolean} true when the params qualify as an authorization popup redirect response.
+   */
+  validateTokenResponse(params) {
+    const oauthParams = [
+      'state',
+      'error',
+      'access_token',
+      'code',
+    ];
+    return oauthParams.some(name => params.has(name));
+  }
+
+  /**
    * Processes the response returned by the popup or the iframe.
    * @param {URLSearchParams} oauthParams
    */
-  async [processTokenResponse](oauthParams) {
+  async processTokenResponse(oauthParams) {
     this.clearObservers();
     const state = oauthParams.get('state');
     if (!state) {
@@ -417,12 +438,13 @@ export class OAuth2Authorization {
       return;
     }
     if (state !== this.state) {
-      // @todo(@jarrodek): Can it happen to have more than a single token request (opened popups) at the same time?
+      // The authorization class (this) is created per token request so this can only have one state.
+      // When the app requests for more tokens at the same time is should create multiple instances of this.
       this[reportOAuthError]('The state value returned by the authorization server is invalid.', 'invalid_state');
       return;
     }
     if (oauthParams.has('error')) {
-      this[reportOAuthError](...this[createTokenResponseError](oauthParams));
+      this[reportOAuthError](...this.createTokenResponseError(oauthParams));
       return;
     }
     const { grantType, responseType } = this.settings;
@@ -456,7 +478,7 @@ export class OAuth2Authorization {
    * @param {URLSearchParams} oauthParams
    * @returns {string[]} Parameters for the [reportOAuthError]() function
    */
-  [createTokenResponseError](oauthParams) {
+  createTokenResponseError(oauthParams) {
     const code = oauthParams.get('error');
     const message = oauthParams.get('error_description');
     return this[createErrorParams](code, message);
@@ -588,37 +610,12 @@ export class OAuth2Authorization {
    * Exchanges the authorization code for authorization token.
    *
    * @param {string} code Returned code from the authorization endpoint.
-   * @returns {Promise<TokenInfo>} The token info when the request was a success.
+   * @returns {Promise<Record<string, any>>} The response from the server.
    */
-  async exchangeCode(code) {
+  async getCodeInfo(code) {
     const body = this.getCodeRequestBody(code);
     const url = this.settings.accessTokenUri;
-    return this.requestToken(url, body);
-  }
-
-  /**
-   * Returns a body value for the code exchange request.
-   * @param {string} code Authorization code value returned by the authorization server.
-   * @return {string} Request body.
-   */
-  getCodeRequestBody(code) {
-    const { settings } = this;
-    const params = new URLSearchParams();
-    params.set('grant_type', 'authorization_code');
-    params.set('client_id', settings.clientId);
-    if (settings.redirectUri) {
-      params.set('redirect_uri', settings.redirectUri);
-    }
-    params.set('code', code);
-    if (settings.clientSecret) {
-      params.set('client_secret', settings.clientSecret);
-    } else {
-      params.set('client_secret', '');
-    }
-    if (settings.pkce) {
-      params.set('code_verifier', this[codeVerifierValue]);
-    }
-    return params.toString();
+    return this.requestTokenInfo(url, body);
   }
 
   /**
@@ -627,9 +624,9 @@ export class OAuth2Authorization {
    * @param {string} url Base URI of the endpoint. Custom properties will be applied to the final URL.
    * @param {string} body Generated body for given type. Custom properties will be applied to the final body.
    * @param {Record<string, string>=} optHeaders Optional headers to add to the request. Applied after custom data.
-   * @return {Promise<TokenInfo>} Promise resolved to the response string.
+   * @return {Promise<Record<string, any>>} Promise resolved to the response string.
    */
-  async requestToken(url, body, optHeaders) {
+  async requestTokenInfo(url, body, optHeaders) {
     const urlInstance = new URL(url);
     const { settings, options } = this;
     let headers = /** @type Record<string, string> */ ({
@@ -658,37 +655,37 @@ export class OAuth2Authorization {
     }
     const response = await fetch(authTokenUrl, init);
     const { status } = response;
+    if (status === 404) {
+      throw new Error('Authorization URI is invalid. Received status 404.');
+    }
+    if (status >= 500) {
+      throw new Error(`Authorization server error. Response code is: ${status}`)
+    }
     let responseBody;
     try {
       responseBody = await response.text();
     } catch (e) {
       responseBody = 'No response has been recorded';
     }
-    if (status === 404) {
-      throw new Error('Authorization URI is invalid. Received status 404.');
+    if (!responseBody) {
+      throw new Error('Code response body is empty.');
     }
     if (status >= 400 && status < 500) {
       throw new Error(`Client error: ${responseBody}`)
     }
-    if (status >= 500) {
-      throw new Error(`Authorization server error. Response code is: ${status}`)
-    }
-    return this[processCodeResponse](responseBody, response.headers.get('content-type'));
+
+    const mime = response.headers.get('content-type') || '';
+    return this.processCodeResponse(responseBody, mime);
   }
 
   /**
-   * Processes code response body and produces map of values.
-   *
-   * @param {string} body Body received in the response.
-   * @param {string} mime Response content type.
-   * @return {TokenInfo} Response as an object.
-   * @throws {Error} Exception when the body is invalid.
+   * Processes body of the code exchange to a map of key value pairs.
+   * @param {string} body
+   * @param {string} mime
+   * @returns {Record<string, any>} 
    */
-  [processCodeResponse](body, mime) {
-    if (!body) {
-      throw new Error('Code response body is empty.');
-    }
-    let tokenInfo = {};
+  processCodeResponse(body, mime='') {
+    let tokenInfo = /** @type Record<string, any> */ ({});
     if (mime.includes('json')) {
       const info = JSON.parse(body);
       Object.keys(info).forEach((key) => {
@@ -709,19 +706,63 @@ export class OAuth2Authorization {
         tokenInfo[name] = value;
       });
     }
-    if (tokenInfo.error) {
-      throw new CodeError(tokenInfo.errorDescription, tokenInfo.error);
+    return tokenInfo;
+  }
+
+  /**
+   * @param {Record<string, any>} info
+   * @returns {TokenInfo} The token info when the request was a success.
+   */
+  mapCodeResponse(info) {
+    if (info.error) {
+      throw new CodeError(info.errorDescription, info.error);
     }
-    const expiresIn = Number(tokenInfo.expiresIn);
-    const scope = this[computeTokenInfoScopes](tokenInfo.scope);
+    const expiresIn = Number(info.expiresIn);
+    const scope = this[computeTokenInfoScopes](info.scope);
     const result = /** @type TokenInfo */ ({
-      ...tokenInfo,
+      ...info,
       expiresIn,
       scope,
       expiresAt: undefined,
       expiresAssumed: false,
     });
     return this[computeExpires](result);
+  }
+
+  /**
+   * Exchanges the authorization code for authorization token.
+   *
+   * @param {string} code Returned code from the authorization endpoint.
+   * @returns {Promise<TokenInfo>} The token info when the request was a success.
+   */
+  async exchangeCode(code) {
+    const info = await this.getCodeInfo(code);
+    return this.mapCodeResponse(info);
+  }
+
+  /**
+   * Returns a body value for the code exchange request.
+   * @param {string} code Authorization code value returned by the authorization server.
+   * @return {string} Request body.
+   */
+  getCodeRequestBody(code) {
+    const { settings } = this;
+    const params = new URLSearchParams();
+    params.set('grant_type', 'authorization_code');
+    params.set('client_id', settings.clientId);
+    if (settings.redirectUri) {
+      params.set('redirect_uri', settings.redirectUri);
+    }
+    params.set('code', code);
+    if (settings.clientSecret) {
+      params.set('client_secret', settings.clientSecret);
+    } else {
+      params.set('client_secret', '');
+    }
+    if (settings.pkce) {
+      params.set('code_verifier', this[codeVerifierValue]);
+    }
+    return params.toString();
   }
 
   /**
@@ -755,7 +796,8 @@ export class OAuth2Authorization {
       };
     }
     try {
-      const tokenInfo = await this.requestToken(accessTokenUri, body, headers);
+      const info = await this.requestTokenInfo(accessTokenUri, body, headers);
+      const tokenInfo = this.mapCodeResponse(info);
       this[handleTokenInfo](tokenInfo);
     } catch (cause) {
       this[handleTokenCodeError](cause);
@@ -810,7 +852,8 @@ export class OAuth2Authorization {
     const url = settings.accessTokenUri;
     const body = this.getPasswordBody();
     try {
-      const tokenInfo = await this.requestToken(url, body);
+      const info = await this.requestTokenInfo(url, body);
+      const tokenInfo = this.mapCodeResponse(info);
       this[handleTokenInfo](tokenInfo);
     } catch (cause) {
       this[handleTokenCodeError](cause);
@@ -853,7 +896,8 @@ export class OAuth2Authorization {
     const url = settings.accessTokenUri;
     const body = this.getCustomGrantBody();
     try {
-      const tokenInfo = await this.requestToken(url, body);
+      const info = await this.requestTokenInfo(url, body);
+      const tokenInfo = this.mapCodeResponse(info);
       this[handleTokenInfo](tokenInfo);
     } catch (cause) {
       this[handleTokenCodeError](cause);

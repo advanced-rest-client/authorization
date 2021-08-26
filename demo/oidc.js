@@ -4,7 +4,7 @@ import '@advanced-rest-client/arc-demo-helper/arc-interactive-demo.js';
 import '@anypoint-web-components/anypoint-radio-button/anypoint-radio-button.js';
 import '@anypoint-web-components/anypoint-radio-button/anypoint-radio-group.js';
 import '@anypoint-web-components/anypoint-checkbox/anypoint-checkbox.js';
-import '../oauth2-authorization.js';
+import '../oidc-authorization.js';
 import '../authorization-method.js';
 import env from './env.js';
 
@@ -136,7 +136,7 @@ class ComponentDemo extends DemoPage {
 
   contentTemplate() {
     return html`
-      <oauth2-authorization tokenProxy="${env.oauth2.tokenProxy}" tokenProxyEncode=''></oauth2-authorization>
+      <oidc-authorization tokenProxy="${env.oauth2.tokenProxy}" tokenProxyEncode=''></oidc-authorization>
       <h2>Authorization method</h2>
       ${this._demoTemplate()}
     `;
