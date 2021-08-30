@@ -139,6 +139,8 @@ export class UiDataHelper {
     i.pkce = element.pkce;
     i.credentialSource = element.credentialSource;
     i.allowRedirectUriChange = element.allowRedirectUriChange;
+    i.assertion = element.assertion;
+    i.deviceCode = element.deviceCode;
   }
 
   /**
@@ -249,6 +251,8 @@ export class UiDataHelper {
     element.pkce = ui.pkce;
     element.credentialSource = ui.credentialSource;
     element._authorizing = ui.authorizing;
+    element.assertion = ui.assertion;
+    element.deviceCode = ui.deviceCode;
   }
 
   /**

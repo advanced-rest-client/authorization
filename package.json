@@ -36,7 +36,7 @@
     "@advanced-rest-client/arc-events": "^0.2.19",
     "@advanced-rest-client/arc-headers": "^0.1.10",
     "@advanced-rest-client/arc-icons": "^3.3.0",
-    "@advanced-rest-client/arc-types": "^0.2.56",
+    "@advanced-rest-client/arc-types": "^0.2.57",
     "@advanced-rest-client/clipboard-copy": "^3.0.1",
     "@advanced-rest-client/events-target-mixin": "^3.2.4",
     "@anypoint-web-components/anypoint-autocomplete": "^0.2.12",
@@ -48,7 +48,7 @@
     "@anypoint-web-components/anypoint-input": "^0.2.27",
     "@anypoint-web-components/anypoint-item": "^1.1.2",
     "@anypoint-web-components/anypoint-listbox": "^1.1.7",
-    "@anypoint-web-components/anypoint-selector": "^1.1.7",
+    "@anypoint-web-components/anypoint-selector": "^1.1.8",
     "@anypoint-web-components/anypoint-switch": "^0.1.10",
     "@anypoint-web-components/validatable-mixin": "^1.1.3",
     "@github/time-elements": "^3.1.2",
@@ -79,7 +79,7 @@
     "lint-staged": "^11.1.2",
     "oauth2-mock-server": "^3.2.0",
     "sinon": "^11.1.2",
-    "typescript": "^4.3.5",
+    "typescript": "^4.4.2",
     "typescript-lit-html-plugin": "^0.9.0"
   },
   "scripts": {

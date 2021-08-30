@@ -1,9 +1,10 @@
 import { Tokens } from './lib/Tokens.js';
-import { OAuth2Authorization, grantResponseMapping, reportOAuthError, resolveFunction, rejectFunction } from './OAuth2Authorization.js';
+import { OAuth2Authorization, grantResponseMapping, reportOAuthError, resolveFunction, rejectFunction, handleTokenInfo } from './OAuth2Authorization.js';
 import { nonceGenerator } from './Utils.js';
 
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OidcTokenInfo} OidcTokenInfo */
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OidcTokenError} OidcTokenError */
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.TokenInfo} TokenInfo */
 
 export class OidcAuthorization extends OAuth2Authorization {
   /**
@@ -122,5 +123,17 @@ export class OidcAuthorization extends OAuth2Authorization {
     }
     this[rejectFunction] = undefined;
     this[resolveFunction] = undefined;
+  }
+
+  /**
+   * Processes token info object when it's ready.
+   *
+   * @param {TokenInfo} info Token info returned from the server.
+   */
+  [handleTokenInfo](info) {
+    const { responseType } = this.settings;
+    const token = Tokens.fromTokenInfo(info);
+    token.responseType = responseType;
+    this.finish([token]);
   }
 }

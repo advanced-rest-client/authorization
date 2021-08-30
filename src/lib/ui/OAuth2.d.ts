@@ -14,21 +14,43 @@ export const oauth2GrantTypes: GrantType[];
 
 export default class OAuth2 extends AuthUiBase {
   /**
-   * @return Computed value, true if the response type is a custom definition.
+   * @returns Computed value, true if the response type is a custom definition.
    */
   get isCustomGrantType(): boolean;
 
+  /**
+   * @returns true when the client id field is required.
+   */
   get clientIdRequired(): boolean;
+  /**
+   * @returns true when the client id field is rendered.
+   */
+  get hasClientId(): boolean;
 
-  get oauth2ClientSecretRendered(): boolean;
+  /**
+   * @returns true when the client secret field is rendered.
+   */
+  get hasClientSecret(): boolean;
 
-  get oauth2ClientSecretRequired(): boolean;
+  /**
+   * @returns true when the client secret field is required.
+   */
+  get clientSecretRequired(): boolean;
 
-  get oauth2AuthorizationUriRendered(): boolean;
+  /**
+   * @returns true when the authorization URI field is rendered.
+   */
+  get authorizationUriRendered(): boolean;
 
-  get oauth2AccessTokenUriRendered(): boolean;
+  /**
+   * @returns true when the token URI field is rendered.
+   */
+  get accessTokenUriRendered(): boolean;
 
-  get oauth2PasswordRendered(): boolean;
+  /**
+   * @returns true when the username and password fields are rendered.
+   */
+  get passwordRendered(): boolean;
 
   /**
    * @returns True when the current `grantType` can support redirect URI.
@@ -57,13 +79,13 @@ export default class OAuth2 extends AuthUiBase {
    * to authorize the app. This endpoint initialized OAuth flow.
    */
   authorizationUri: string;
-   /**
-    * Endpoint to authorize the token (OAuth 1) or exchange code for token (OAuth 2).
-    */
+  /**
+   * Endpoint to authorize the token (OAuth 1) or exchange code for token (OAuth 2).
+   */
   accessTokenUri: string;
-   /**
-    * Authorization redirect URI
-    */
+  /**
+   * Authorization redirect URI
+   */
   redirectUri: string;
   /**
    * List of pre-defined scopes to choose from. It will be passed to the `oauth2-scope-selector`
@@ -176,10 +198,26 @@ export default class OAuth2 extends AuthUiBase {
    * The value of the username filed.
    */
   password: string;
-   /** 
-    * The value of the password filed.
-    */
+  /** 
+   * The value of the password filed.
+   */
   username: string;
+  /** 
+   * The assertion parameter for the JWT token authorization.
+   * 
+   * @link https://datatracker.ietf.org/doc/html/rfc7523#section-2.1
+   */
+  assertion: string;
+  /** 
+   * The device_code parameter for the device code authorization.
+   * 
+   * @link https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
+   */
+  deviceCode: string;
+  /** 
+   * A flag describing that the redirect URL editor is rendered.
+   */
+  editingRedirectUri: boolean;
 
   constructor(init: AuthUiInit);
 
@@ -191,7 +229,7 @@ export default class OAuth2 extends AuthUiBase {
 
   /**
    * Serialized input values
-   * @return An object with user input
+   * @returns An object with user input
    */
   serialize(): OAuth2Authorization;
 
@@ -205,7 +243,7 @@ export default class OAuth2 extends AuthUiBase {
    * @returns The auth token or null if couldn't be requested.
    * @throws When authorization error
    */
-  authorize(): Promise<TokenInfo|null>;
+  authorize(): Promise<TokenInfo | null>;
 
   /**
    * This function hides all non-crucial fields that has been pre-filled when element has been
@@ -272,7 +310,7 @@ export default class OAuth2 extends AuthUiBase {
   cancelRedirectUri(): void;
 
   /**
-   * @return The list of client credentials to render in the credentials selector.
+   * @returns The list of client credentials to render in the credentials selector.
    */
   listCredentials(): CredentialsInfo[];
 
@@ -303,113 +341,122 @@ export default class OAuth2 extends AuthUiBase {
 
   render(): TemplateResult;
   /**
-   * @return The template for the <form> content.
+   * @returns The template for the <form> content.
    */
-  formContentTemplate(): (TemplateResult|string)[];
+  formContentTemplate(): (TemplateResult | string)[];
 
   /**
-   * @return The template for API custom properties (annotations)
+   * @returns The template for API custom properties (annotations)
    */
-  oauth2CustomPropertiesTemplate(): TemplateResult|string;
+  oauth2CustomPropertiesTemplate(): TemplateResult | string;
 
   /**
    * @returns The template for the OAuth 2 response type selector
    */
-  oauth2GrantTypeTemplate(): TemplateResult|string;
+  oauth2GrantTypeTemplate(): TemplateResult | string;
 
   /**
-   * @return The template for the client credentials source.
+   * @returns The template for the client credentials source.
    */
-  credentialsSourceTemplate(): TemplateResult|string;
+  credentialsSourceTemplate(): TemplateResult | string;
 
   /**
    * @returns The template for the OAuth 2 client id input.
    */
-  clientIdTemplate(): TemplateResult|string;
+  clientIdTemplate(): TemplateResult | string;
 
   /**
    * @returns The template for the OAuth 2 client secret input.
    */
-  clientSecretTemplate(): TemplateResult|string;
+  clientSecretTemplate(): TemplateResult | string;
 
   /**
    * @returns The template for the toggle advanced view switch
    */
-  toggleAdvViewSwitchTemplate(): TemplateResult|string;
+  toggleAdvViewSwitchTemplate(): TemplateResult | string;
 
   /**
    * @returns The template for the OAuth 2 advanced options.
    */
-  oauth2AdvancedTemplate(): TemplateResult|string;
+  oauth2AdvancedTemplate(): TemplateResult | string;
 
   /**
    * @returns The template for the OAuth 2 redirect URI label
    */
-  oauth2RedirectTemplate(): TemplateResult|string;
+  oauth2RedirectTemplate(): TemplateResult | string;
 
   /**
    * @returns The template for the OAuth 2 token value
    */
-  oauth2TokenTemplate(): TemplateResult|string;
+  oauth2TokenTemplate(): TemplateResult | string;
 
   /**
    * @returns The template for the "authorize" button.
    */
-  oath2AuthorizeTemplate(): TemplateResult|string;
+  oath2AuthorizeTemplate(): TemplateResult | string;
 
   /**
    * @param urlType The input type to render
    * @returns The template for the authorization URI input
    */
-  authorizationUriTemplate(urlType: string): TemplateResult|string;
+  authorizationUriTemplate(urlType: string): TemplateResult | string;
 
   /**
    * @param urlType The input type to render
    * @returns The template for the access token URI input
    */
-  accessTokenUriTemplate(urlType: string): TemplateResult|string;
+  accessTokenUriTemplate(urlType: string): TemplateResult | string;
 
   /**
    * @returns The template for the user name input
    */
-  usernameTemplate(): TemplateResult|string;
+  usernameTemplate(): TemplateResult | string;
 
   /**
    * @returns The template for the user password input
    */
-  passwordTemplateLocal(): TemplateResult|string;
+  passwordTemplateLocal(): TemplateResult | string;
 
   /**
    * @returns The template for the OAuth 2 scopes input
    */
-  scopesTemplate(): TemplateResult|string;
+  scopesTemplate(): TemplateResult | string;
 
   /**
    * For client_credentials grant this renders the dropdown with an option to select
    * where the credentials should be used. Current values: 
    * - authorization header
    * - message body
-   * @return 
+   * @returns 
    */
-  paramsLocationTemplate(): TemplateResult|string;
+  paramsLocationTemplate(): TemplateResult | string;
 
   /**
    * @returns The template for the PKCE option of the OAuth 2 extension.
    */
-  pkceTemplate(): TemplateResult|string;
+  pkceTemplate(): TemplateResult | string;
 
   /**
    * @returns The template for the OAuth 2 redirect URI input
    */
-  redirectUriInputTemplate(): TemplateResult|string;
+  redirectUriInputTemplate(): TemplateResult | string;
 
   /**
    * @returns The template for the OAuth 2 redirect URI content
    */
-  redirectUriContentTemplate(): TemplateResult|string;
+  redirectUriContentTemplate(): TemplateResult | string;
 
   /**
-   * @return The template for the edit redirect URI button, when enabled.
+   * @returns The template for the edit redirect URI button, when enabled.
    */
-  editRedirectUriTemplate(): TemplateResult|string;
+  editRedirectUriTemplate(): TemplateResult | string;
+
+  /**
+   * @returns The template for the assertion (JWT) input, when needed.
+   */
+  assertionTemplate(): TemplateResult | string;
+  /**
+   * @returns The template for the device code input, when needed.
+   */
+  deviceCodeTemplate(): TemplateResult | string;
 }

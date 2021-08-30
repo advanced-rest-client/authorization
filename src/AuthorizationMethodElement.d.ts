@@ -468,6 +468,20 @@ export default class AuthorizationMethod extends EventsTargetMixin(LitElement) {
    * @attribute
    */
   issuerUrl: string;
+  /** 
+   * The assertion parameter for the JWT token authorization.
+   * 
+   * @link https://datatracker.ietf.org/doc/html/rfc7523#section-2.1
+   * @attribute
+   */
+  assertion: string;
+  /** 
+   * The device_code parameter for the device code authorization.
+   * 
+   * @link https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
+   * @attribute
+   */
+  deviceCode: string;
 
   onchange: EventListener | null;
 

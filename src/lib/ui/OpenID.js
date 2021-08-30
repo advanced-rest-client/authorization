@@ -5,6 +5,7 @@ import '@github/time-elements';
 import OAuth2 from './OAuth2.js';
 import { inputTemplate } from '../../CommonTemplates.js';
 import { generateState, selectNode } from "../../Utils.js";
+import * as KnownGrants from '../KnownGrants.js';
 
 /** @typedef {import('lit-element').TemplateResult} TemplateResult */
 /** @typedef {import('@anypoint-web-components/anypoint-listbox').AnypointListbox} AnypointListbox */
@@ -17,13 +18,13 @@ import { generateState, selectNode } from "../../Utils.js";
 /** @typedef {import('../../types').Oauth2ResponseType} Oauth2ResponseType */
 
 export const GrantLabels = {
-  implicit: 'Access token',
-  authorization_code: 'Authorization code',
+  [KnownGrants.implicit]: 'Access token',
+  [KnownGrants.code]: 'Authorization code',
   refresh_token: 'Refresh token',
-  password: 'Password',
-  client_credentials: 'Client credentials',
-  'urn:ietf:params:oauth:grant-type:device_code': 'Device code',
-  'urn:ietf:params:oauth:grant-type:jwt-bearer': 'JWT Bearer',
+  [KnownGrants.password]: 'Password',
+  [KnownGrants.clientCredentials]: 'Client credentials',
+  [KnownGrants.deviceCode]: 'Device code',
+  [KnownGrants.jwtBearer]: 'JWT Bearer',
 };
 
 export const ResponseTypeLabels = {
@@ -95,6 +96,9 @@ export default class OpenID extends OAuth2 {
     }
     if (Array.isArray(tokens)) {
       result.accessToken = this.readTokenValue(/** @type OidcTokenInfo */ (tokens[selectedToken]));
+    }
+    if (result.responseType && !this.noPkce && result.responseType.includes('code')) {
+      result.pkce = this.pkce;
     }
     return result;
   }

@@ -6,6 +6,7 @@ import { applyCustomSettingsQuery, applyCustomSettingsBody, applyCustomSettingsH
 import { AuthorizationError, CodeError } from './AuthorizationError.js';
 import { IframeAuthorization } from './lib/IframeAuthorization.js';
 import { PopupAuthorization } from './lib/PopupAuthorization.js';
+import * as KnownGrants from './lib/KnownGrants.js';
 
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OAuth2Authorization} OAuth2Settings */
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.TokenInfo} TokenInfo */
@@ -24,6 +25,8 @@ export const authorizeImplicitCode = Symbol('authorizeImplicitCode');
 export const authorizeClientCredentials = Symbol('authorizeClientCredentials');
 export const authorizePassword = Symbol('authorizePassword');
 export const authorizeCustomGrant = Symbol('authorizeCustomGrant');
+export const authorizeDeviceCode = Symbol('authorizeDeviceCode');
+export const authorizeJwt = Symbol('authorizeJwt');
 export const popupValue = Symbol('popupValue');
 export const popupUnloadHandler = Symbol('popupUnloadHandler');
 export const tokenResponse = Symbol('tokenResponse');
@@ -186,15 +189,21 @@ export class OAuth2Authorization {
   [authorize]() {
     const { settings } = this;
     switch (settings.grantType) {
-      case 'implicit':
-      case 'authorization_code':
+      case KnownGrants.implicit:
+      case KnownGrants.code:
         this[authorizeImplicitCode]();
         break;
-      case 'client_credentials':
+      case KnownGrants.clientCredentials:
         this[authorizeClientCredentials]();
         break;
-      case 'password':
+      case KnownGrants.password:
         this[authorizePassword]();
+        break;
+      case KnownGrants.deviceCode:
+        this[authorizeDeviceCode]();
+        break;
+      case KnownGrants.jwtBearer:
+        this[authorizeJwt]();
         break;
       default:
         this[authorizeCustomGrant]();
@@ -930,6 +939,77 @@ export class OAuth2Authorization {
     }
     if (settings.password) {
       params.set('password', settings.password);
+    }
+    return params.toString();
+  }
+
+  /**
+   * Requests a token for the `urn:ietf:params:oauth:grant-type:device_code` response type.
+   *
+   * @return {Promise<void>} Promise resolved to a token info object.
+   */
+  async [authorizeDeviceCode]() {
+    const { settings } = this;
+    const url = settings.accessTokenUri;
+    const body = this.getDeviceCodeBody();
+    try {
+      const info = await this.requestTokenInfo(url, body);
+      const tokenInfo = this.mapCodeResponse(info);
+      this[handleTokenInfo](tokenInfo);
+    } catch (cause) {
+      this[handleTokenCodeError](cause);
+    }
+  }
+
+  /**
+   * Generates a payload message for the `urn:ietf:params:oauth:grant-type:device_code` authorization.
+   *
+   * @return {string} Message body as defined in OAuth2 spec.
+   */
+  getDeviceCodeBody() {
+    const { settings } = this;
+    const params = new URLSearchParams();
+    params.set('grant_type', KnownGrants.deviceCode);
+    params.set('device_code', settings.deviceCode);
+    if (settings.clientId) {
+      params.set('client_id', settings.clientId);
+    }
+    if (settings.clientSecret) {
+      params.set('client_secret', settings.clientSecret);
+    }
+    return params.toString();
+  }
+
+  /**
+   * Requests a token for the `urn:ietf:params:oauth:grant-type:jwt-bearer` response type.
+   *
+   * @return {Promise<void>} Promise resolved to a token info object.
+   */
+  async [authorizeJwt]() {
+    const { settings } = this;
+    const url = settings.accessTokenUri;
+    const body = this.getJwtBody();
+    try {
+      const info = await this.requestTokenInfo(url, body);
+      const tokenInfo = this.mapCodeResponse(info);
+      this[handleTokenInfo](tokenInfo);
+    } catch (cause) {
+      this[handleTokenCodeError](cause);
+    }
+  }
+
+  /**
+   * Generates a payload message for the `urn:ietf:params:oauth:grant-type:jwt-bearer` authorization.
+   *
+   * @return {string} Message body as defined in OAuth2 spec.
+   */
+  getJwtBody() {
+    const { settings } = this;
+    const params = new URLSearchParams();
+    params.set('grant_type', KnownGrants.jwtBearer);
+    params.set('assertion', settings.assertion);
+    if (Array.isArray(settings.scopes) && settings.scopes.length) {
+      params.set('scope', settings.scopes.join(' '));
     }
     return params.toString();
   }

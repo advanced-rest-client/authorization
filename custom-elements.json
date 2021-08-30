@@ -2,6 +2,737 @@
   "version": "experimental",
   "tags": [
     {
+      "name": "auth-dialog-basic",
+      "path": "./auth-dialog-basic.js",
+      "attributes": [
+        {
+          "name": "username",
+          "description": "User login",
+          "type": "string"
+        },
+        {
+          "name": "password",
+          "description": "User password",
+          "type": "string"
+        },
+        {
+          "name": "outlined",
+          "description": "Enables MD outlined theme",
+          "type": "boolean"
+        },
+        {
+          "name": "compatibility",
+          "description": "Enables compatibility theme for Anypoint",
+          "type": "boolean"
+        },
+        {
+          "name": "modal",
+          "description": "If `modal` is true, this implies `noCancelOnOutsideClick`,\n`noCancelOnEscKey` and `withBackdrop`.",
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "opened",
+          "description": "True if the overlay is currently displayed.",
+          "type": "boolean"
+        },
+        {
+          "name": "withBackdrop",
+          "description": "Set to true to display a backdrop behind the overlay. It traps the focus\nwithin the light DOM of the overlay.",
+          "type": "boolean"
+        },
+        {
+          "name": "noAutoFocus",
+          "description": "Set to true to disable auto-focusing the overlay or child nodes with\nthe `autofocus` attribute` when the overlay is opened.",
+          "type": "boolean"
+        },
+        {
+          "name": "noCancelOnEscKey",
+          "description": "Set to true to disable canceling the overlay with the ESC key.",
+          "type": "boolean"
+        },
+        {
+          "name": "noCancelOnOutsideClick",
+          "description": "Set to true to disable canceling the overlay by clicking outside it.",
+          "type": "boolean"
+        },
+        {
+          "name": "restoreFocusOnClose",
+          "description": "Set to true to enable restoring of focus when overlay is closed.",
+          "type": "boolean"
+        },
+        {
+          "name": "allowClickThrough",
+          "description": "Set to true to allow clicks to go through overlays.\nWhen the user clicks outside this overlay, the click may\nclose the overlay below.",
+          "type": "boolean"
+        },
+        {
+          "name": "alwaysOnTop",
+          "description": "Set to true to keep overlay always on top.",
+          "type": "boolean"
+        },
+        {
+          "name": "scrollAction",
+          "description": "Determines which action to perform when scroll outside an opened overlay\nhappens. Possible values: lock - blocks scrolling from happening, refit -\ncomputes the new position on the overlay cancel - causes the overlay to\nclose",
+          "type": "string"
+        },
+        {
+          "name": "noOverlap",
+          "description": "Will position the element around the positionTarget without overlapping\nit.",
+          "type": "boolean"
+        },
+        {
+          "name": "horizontalAlign",
+          "description": "The orientation against which to align the element horizontally\nrelative to the `positionTarget`. Possible values are \"left\", \"right\",\n\"center\", \"auto\".",
+          "type": "string"
+        },
+        {
+          "name": "verticalAlign",
+          "description": "The orientation against which to align the element vertically\nrelative to the `positionTarget`. Possible values are \"top\", \"bottom\",\n\"middle\", \"auto\".",
+          "type": "string"
+        },
+        {
+          "name": "dynamicAlign",
+          "description": "If true, it will use `horizontalAlign` and `verticalAlign` values as\npreferred alignment and if there's not enough space, it will pick the\nvalues which minimize the cropping.",
+          "type": "boolean"
+        },
+        {
+          "name": "horizontalOffset",
+          "description": "A pixel value that will be added to the position calculated for the\ngiven `horizontalAlign`, in the direction of alignment. You can think\nof it as increasing or decreasing the distance to the side of the\nscreen given by `horizontalAlign`.\n\nIf `horizontalAlign` is \"left\" or \"center\", this offset will increase or\ndecrease the distance to the left side of the screen: a negative offset\nwill move the dropdown to the left; a positive one, to the right.\n\nConversely if `horizontalAlign` is \"right\", this offset will increase\nor decrease the distance to the right side of the screen: a negative\noffset will move the dropdown to the right; a positive one, to the left.",
+          "type": "number"
+        },
+        {
+          "name": "verticalOffset",
+          "description": "A pixel value that will be added to the position calculated for the\ngiven `verticalAlign`, in the direction of alignment. You can think\nof it as increasing or decreasing the distance to the side of the\nscreen given by `verticalAlign`.\n\nIf `verticalAlign` is \"top\" or \"middle\", this offset will increase or\ndecrease the distance to the top side of the screen: a negative offset\nwill move the dropdown upwards; a positive one, downwards.\n\nConversely if `verticalAlign` is \"bottom\", this offset will increase\nor decrease the distance to the bottom side of the screen: a negative\noffset will move the dropdown downwards; a positive one, upwards.",
+          "type": "number"
+        },
+        {
+          "name": "autoFitOnAttach",
+          "description": "Set to true to auto-fit on attach.",
+          "type": "boolean"
+        },
+        {
+          "name": "fitPositionTarget",
+          "description": "When set it fits the positioning target width.",
+          "type": "boolean"
+        }
+      ],
+      "properties": [
+        {
+          "name": "username",
+          "attribute": "username",
+          "description": "User login",
+          "type": "string"
+        },
+        {
+          "name": "password",
+          "attribute": "password",
+          "description": "User password",
+          "type": "string"
+        },
+        {
+          "name": "outlined",
+          "attribute": "outlined",
+          "description": "Enables MD outlined theme",
+          "type": "boolean"
+        },
+        {
+          "name": "styles",
+          "type": "CSSResult"
+        },
+        {
+          "name": "compatibility",
+          "attribute": "compatibility",
+          "description": "Enables compatibility theme for Anypoint",
+          "type": "boolean"
+        },
+        {
+          "name": "modal",
+          "attribute": "modal",
+          "description": "If `modal` is true, this implies `noCancelOnOutsideClick`,\n`noCancelOnEscKey` and `withBackdrop`.",
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "opened",
+          "attribute": "opened",
+          "description": "True if the overlay is currently displayed.",
+          "type": "boolean"
+        },
+        {
+          "name": "withBackdrop",
+          "attribute": "withBackdrop",
+          "description": "Set to true to display a backdrop behind the overlay. It traps the focus\nwithin the light DOM of the overlay.",
+          "type": "boolean"
+        },
+        {
+          "name": "noAutoFocus",
+          "attribute": "noAutoFocus",
+          "description": "Set to true to disable auto-focusing the overlay or child nodes with\nthe `autofocus` attribute` when the overlay is opened.",
+          "type": "boolean"
+        },
+        {
+          "name": "noCancelOnEscKey",
+          "attribute": "noCancelOnEscKey",
+          "description": "Set to true to disable canceling the overlay with the ESC key.",
+          "type": "boolean"
+        },
+        {
+          "name": "noCancelOnOutsideClick",
+          "attribute": "noCancelOnOutsideClick",
+          "description": "Set to true to disable canceling the overlay by clicking outside it.",
+          "type": "boolean"
+        },
+        {
+          "name": "closingReason",
+          "description": "Contains the reason(s) this overlay was last closed (see\n`overlay-closed`). `ArcOverlayMixin` provides the `canceled`\nreason; implementers of the behavior can provide other reasons in\naddition to `canceled`.",
+          "type": "{ type: Object; }"
+        },
+        {
+          "name": "restoreFocusOnClose",
+          "attribute": "restoreFocusOnClose",
+          "description": "Set to true to enable restoring of focus when overlay is closed.",
+          "type": "boolean"
+        },
+        {
+          "name": "allowClickThrough",
+          "attribute": "allowClickThrough",
+          "description": "Set to true to allow clicks to go through overlays.\nWhen the user clicks outside this overlay, the click may\nclose the overlay below.",
+          "type": "boolean"
+        },
+        {
+          "name": "alwaysOnTop",
+          "attribute": "alwaysOnTop",
+          "description": "Set to true to keep overlay always on top.",
+          "type": "boolean"
+        },
+        {
+          "name": "scrollAction",
+          "attribute": "scrollAction",
+          "description": "Determines which action to perform when scroll outside an opened overlay\nhappens. Possible values: lock - blocks scrolling from happening, refit -\ncomputes the new position on the overlay cancel - causes the overlay to\nclose",
+          "type": "string"
+        },
+        {
+          "name": "canceled",
+          "type": "boolean"
+        },
+        {
+          "name": "isAttached",
+          "type": "boolean"
+        },
+        {
+          "name": "backdropElement",
+          "type": "ArcOverlayBackdrop"
+        },
+        {
+          "name": "onopenedchanged",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "onoverlaycanceled",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "onoverlayopened",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "onoverlayclosed",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "onopened",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "onclosed",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "sizingTarget",
+          "description": "The element that will receive a `max-height`/`width`. By default it is\nthe same as `this`, but it can be set to a child element. This is useful,\nfor example, for implementing a scrolling region inside the element.",
+          "type": "HTMLElement"
+        },
+        {
+          "name": "fitInto",
+          "description": "The element to fit `this` into.",
+          "type": "HTMLElement"
+        },
+        {
+          "name": "noOverlap",
+          "attribute": "noOverlap",
+          "description": "Will position the element around the positionTarget without overlapping\nit.",
+          "type": "boolean"
+        },
+        {
+          "name": "positionTarget",
+          "description": "The element that should be used to position the element. If not set, it\nwill default to the parent node.",
+          "type": "HTMLElement"
+        },
+        {
+          "name": "horizontalAlign",
+          "attribute": "horizontalAlign",
+          "description": "The orientation against which to align the element horizontally\nrelative to the `positionTarget`. Possible values are \"left\", \"right\",\n\"center\", \"auto\".",
+          "type": "string"
+        },
+        {
+          "name": "verticalAlign",
+          "attribute": "verticalAlign",
+          "description": "The orientation against which to align the element vertically\nrelative to the `positionTarget`. Possible values are \"top\", \"bottom\",\n\"middle\", \"auto\".",
+          "type": "string"
+        },
+        {
+          "name": "dynamicAlign",
+          "attribute": "dynamicAlign",
+          "description": "If true, it will use `horizontalAlign` and `verticalAlign` values as\npreferred alignment and if there's not enough space, it will pick the\nvalues which minimize the cropping.",
+          "type": "boolean"
+        },
+        {
+          "name": "horizontalOffset",
+          "attribute": "horizontalOffset",
+          "description": "A pixel value that will be added to the position calculated for the\ngiven `horizontalAlign`, in the direction of alignment. You can think\nof it as increasing or decreasing the distance to the side of the\nscreen given by `horizontalAlign`.\n\nIf `horizontalAlign` is \"left\" or \"center\", this offset will increase or\ndecrease the distance to the left side of the screen: a negative offset\nwill move the dropdown to the left; a positive one, to the right.\n\nConversely if `horizontalAlign` is \"right\", this offset will increase\nor decrease the distance to the right side of the screen: a negative\noffset will move the dropdown to the right; a positive one, to the left.",
+          "type": "number"
+        },
+        {
+          "name": "verticalOffset",
+          "attribute": "verticalOffset",
+          "description": "A pixel value that will be added to the position calculated for the\ngiven `verticalAlign`, in the direction of alignment. You can think\nof it as increasing or decreasing the distance to the side of the\nscreen given by `verticalAlign`.\n\nIf `verticalAlign` is \"top\" or \"middle\", this offset will increase or\ndecrease the distance to the top side of the screen: a negative offset\nwill move the dropdown upwards; a positive one, downwards.\n\nConversely if `verticalAlign` is \"bottom\", this offset will increase\nor decrease the distance to the bottom side of the screen: a negative\noffset will move the dropdown downwards; a positive one, upwards.",
+          "type": "number"
+        },
+        {
+          "name": "autoFitOnAttach",
+          "attribute": "autoFitOnAttach",
+          "description": "Set to true to auto-fit on attach.",
+          "type": "boolean"
+        },
+        {
+          "name": "fitPositionTarget",
+          "attribute": "fitPositionTarget",
+          "description": "When set it fits the positioning target width.",
+          "type": "boolean"
+        }
+      ],
+      "events": [
+        {
+          "name": "resize",
+          "description": "Dispatched when the element should re-layout itself."
+        },
+        {
+          "name": "opened",
+          "description": "Dispatched after the element is rendered opened"
+        },
+        {
+          "name": "closed",
+          "description": "Dispatched after the element is rendered closed"
+        },
+        {
+          "name": "cancel",
+          "description": "Dispatched when element is about to be closed. Cancelling the event stops the closing."
+        },
+        {
+          "name": "openedchange",
+          "description": "When the `opened` property changed."
+        },
+        {
+          "name": "overlay-canceled",
+          "description": "Deprecated"
+        },
+        {
+          "name": "iron-overlay-canceled",
+          "description": "Deprecated"
+        },
+        {
+          "name": "overlay-opened",
+          "description": "Deprecated"
+        },
+        {
+          "name": "iron-overlay-opened",
+          "description": "Deprecated"
+        },
+        {
+          "name": "overlay-closed",
+          "description": "Deprecated"
+        },
+        {
+          "name": "iron-overlay-closed",
+          "description": "Deprecated"
+        },
+        {
+          "name": "opened-changed",
+          "description": "Deprecated"
+        }
+      ]
+    },
+    {
+      "name": "auth-dialog-ntlm",
+      "path": "./auth-dialog-ntlm.js",
+      "attributes": [
+        {
+          "name": "username",
+          "description": "User login",
+          "type": "string"
+        },
+        {
+          "name": "password",
+          "description": "User password",
+          "type": "string"
+        },
+        {
+          "name": "domain",
+          "description": "NT domain to login to.",
+          "type": "string"
+        },
+        {
+          "name": "outlined",
+          "description": "Enables MD outlined theme",
+          "type": "boolean"
+        },
+        {
+          "name": "compatibility",
+          "description": "Enables compatibility theme for Anypoint",
+          "type": "boolean"
+        },
+        {
+          "name": "modal",
+          "description": "If `modal` is true, this implies `noCancelOnOutsideClick`,\n`noCancelOnEscKey` and `withBackdrop`.",
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "opened",
+          "description": "True if the overlay is currently displayed.",
+          "type": "boolean"
+        },
+        {
+          "name": "withBackdrop",
+          "description": "Set to true to display a backdrop behind the overlay. It traps the focus\nwithin the light DOM of the overlay.",
+          "type": "boolean"
+        },
+        {
+          "name": "noAutoFocus",
+          "description": "Set to true to disable auto-focusing the overlay or child nodes with\nthe `autofocus` attribute` when the overlay is opened.",
+          "type": "boolean"
+        },
+        {
+          "name": "noCancelOnEscKey",
+          "description": "Set to true to disable canceling the overlay with the ESC key.",
+          "type": "boolean"
+        },
+        {
+          "name": "noCancelOnOutsideClick",
+          "description": "Set to true to disable canceling the overlay by clicking outside it.",
+          "type": "boolean"
+        },
+        {
+          "name": "restoreFocusOnClose",
+          "description": "Set to true to enable restoring of focus when overlay is closed.",
+          "type": "boolean"
+        },
+        {
+          "name": "allowClickThrough",
+          "description": "Set to true to allow clicks to go through overlays.\nWhen the user clicks outside this overlay, the click may\nclose the overlay below.",
+          "type": "boolean"
+        },
+        {
+          "name": "alwaysOnTop",
+          "description": "Set to true to keep overlay always on top.",
+          "type": "boolean"
+        },
+        {
+          "name": "scrollAction",
+          "description": "Determines which action to perform when scroll outside an opened overlay\nhappens. Possible values: lock - blocks scrolling from happening, refit -\ncomputes the new position on the overlay cancel - causes the overlay to\nclose",
+          "type": "string"
+        },
+        {
+          "name": "noOverlap",
+          "description": "Will position the element around the positionTarget without overlapping\nit.",
+          "type": "boolean"
+        },
+        {
+          "name": "horizontalAlign",
+          "description": "The orientation against which to align the element horizontally\nrelative to the `positionTarget`. Possible values are \"left\", \"right\",\n\"center\", \"auto\".",
+          "type": "string"
+        },
+        {
+          "name": "verticalAlign",
+          "description": "The orientation against which to align the element vertically\nrelative to the `positionTarget`. Possible values are \"top\", \"bottom\",\n\"middle\", \"auto\".",
+          "type": "string"
+        },
+        {
+          "name": "dynamicAlign",
+          "description": "If true, it will use `horizontalAlign` and `verticalAlign` values as\npreferred alignment and if there's not enough space, it will pick the\nvalues which minimize the cropping.",
+          "type": "boolean"
+        },
+        {
+          "name": "horizontalOffset",
+          "description": "A pixel value that will be added to the position calculated for the\ngiven `horizontalAlign`, in the direction of alignment. You can think\nof it as increasing or decreasing the distance to the side of the\nscreen given by `horizontalAlign`.\n\nIf `horizontalAlign` is \"left\" or \"center\", this offset will increase or\ndecrease the distance to the left side of the screen: a negative offset\nwill move the dropdown to the left; a positive one, to the right.\n\nConversely if `horizontalAlign` is \"right\", this offset will increase\nor decrease the distance to the right side of the screen: a negative\noffset will move the dropdown to the right; a positive one, to the left.",
+          "type": "number"
+        },
+        {
+          "name": "verticalOffset",
+          "description": "A pixel value that will be added to the position calculated for the\ngiven `verticalAlign`, in the direction of alignment. You can think\nof it as increasing or decreasing the distance to the side of the\nscreen given by `verticalAlign`.\n\nIf `verticalAlign` is \"top\" or \"middle\", this offset will increase or\ndecrease the distance to the top side of the screen: a negative offset\nwill move the dropdown upwards; a positive one, downwards.\n\nConversely if `verticalAlign` is \"bottom\", this offset will increase\nor decrease the distance to the bottom side of the screen: a negative\noffset will move the dropdown downwards; a positive one, upwards.",
+          "type": "number"
+        },
+        {
+          "name": "autoFitOnAttach",
+          "description": "Set to true to auto-fit on attach.",
+          "type": "boolean"
+        },
+        {
+          "name": "fitPositionTarget",
+          "description": "When set it fits the positioning target width.",
+          "type": "boolean"
+        }
+      ],
+      "properties": [
+        {
+          "name": "username",
+          "attribute": "username",
+          "description": "User login",
+          "type": "string"
+        },
+        {
+          "name": "password",
+          "attribute": "password",
+          "description": "User password",
+          "type": "string"
+        },
+        {
+          "name": "domain",
+          "attribute": "domain",
+          "description": "NT domain to login to.",
+          "type": "string"
+        },
+        {
+          "name": "outlined",
+          "attribute": "outlined",
+          "description": "Enables MD outlined theme",
+          "type": "boolean"
+        },
+        {
+          "name": "styles",
+          "type": "CSSResult"
+        },
+        {
+          "name": "compatibility",
+          "attribute": "compatibility",
+          "description": "Enables compatibility theme for Anypoint",
+          "type": "boolean"
+        },
+        {
+          "name": "modal",
+          "attribute": "modal",
+          "description": "If `modal` is true, this implies `noCancelOnOutsideClick`,\n`noCancelOnEscKey` and `withBackdrop`.",
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "opened",
+          "attribute": "opened",
+          "description": "True if the overlay is currently displayed.",
+          "type": "boolean"
+        },
+        {
+          "name": "withBackdrop",
+          "attribute": "withBackdrop",
+          "description": "Set to true to display a backdrop behind the overlay. It traps the focus\nwithin the light DOM of the overlay.",
+          "type": "boolean"
+        },
+        {
+          "name": "noAutoFocus",
+          "attribute": "noAutoFocus",
+          "description": "Set to true to disable auto-focusing the overlay or child nodes with\nthe `autofocus` attribute` when the overlay is opened.",
+          "type": "boolean"
+        },
+        {
+          "name": "noCancelOnEscKey",
+          "attribute": "noCancelOnEscKey",
+          "description": "Set to true to disable canceling the overlay with the ESC key.",
+          "type": "boolean"
+        },
+        {
+          "name": "noCancelOnOutsideClick",
+          "attribute": "noCancelOnOutsideClick",
+          "description": "Set to true to disable canceling the overlay by clicking outside it.",
+          "type": "boolean"
+        },
+        {
+          "name": "closingReason",
+          "description": "Contains the reason(s) this overlay was last closed (see\n`overlay-closed`). `ArcOverlayMixin` provides the `canceled`\nreason; implementers of the behavior can provide other reasons in\naddition to `canceled`.",
+          "type": "{ type: Object; }"
+        },
+        {
+          "name": "restoreFocusOnClose",
+          "attribute": "restoreFocusOnClose",
+          "description": "Set to true to enable restoring of focus when overlay is closed.",
+          "type": "boolean"
+        },
+        {
+          "name": "allowClickThrough",
+          "attribute": "allowClickThrough",
+          "description": "Set to true to allow clicks to go through overlays.\nWhen the user clicks outside this overlay, the click may\nclose the overlay below.",
+          "type": "boolean"
+        },
+        {
+          "name": "alwaysOnTop",
+          "attribute": "alwaysOnTop",
+          "description": "Set to true to keep overlay always on top.",
+          "type": "boolean"
+        },
+        {
+          "name": "scrollAction",
+          "attribute": "scrollAction",
+          "description": "Determines which action to perform when scroll outside an opened overlay\nhappens. Possible values: lock - blocks scrolling from happening, refit -\ncomputes the new position on the overlay cancel - causes the overlay to\nclose",
+          "type": "string"
+        },
+        {
+          "name": "canceled",
+          "type": "boolean"
+        },
+        {
+          "name": "isAttached",
+          "type": "boolean"
+        },
+        {
+          "name": "backdropElement",
+          "type": "ArcOverlayBackdrop"
+        },
+        {
+          "name": "onopenedchanged",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "onoverlaycanceled",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "onoverlayopened",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "onoverlayclosed",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "onopened",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "onclosed",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "sizingTarget",
+          "description": "The element that will receive a `max-height`/`width`. By default it is\nthe same as `this`, but it can be set to a child element. This is useful,\nfor example, for implementing a scrolling region inside the element.",
+          "type": "HTMLElement"
+        },
+        {
+          "name": "fitInto",
+          "description": "The element to fit `this` into.",
+          "type": "HTMLElement"
+        },
+        {
+          "name": "noOverlap",
+          "attribute": "noOverlap",
+          "description": "Will position the element around the positionTarget without overlapping\nit.",
+          "type": "boolean"
+        },
+        {
+          "name": "positionTarget",
+          "description": "The element that should be used to position the element. If not set, it\nwill default to the parent node.",
+          "type": "HTMLElement"
+        },
+        {
+          "name": "horizontalAlign",
+          "attribute": "horizontalAlign",
+          "description": "The orientation against which to align the element horizontally\nrelative to the `positionTarget`. Possible values are \"left\", \"right\",\n\"center\", \"auto\".",
+          "type": "string"
+        },
+        {
+          "name": "verticalAlign",
+          "attribute": "verticalAlign",
+          "description": "The orientation against which to align the element vertically\nrelative to the `positionTarget`. Possible values are \"top\", \"bottom\",\n\"middle\", \"auto\".",
+          "type": "string"
+        },
+        {
+          "name": "dynamicAlign",
+          "attribute": "dynamicAlign",
+          "description": "If true, it will use `horizontalAlign` and `verticalAlign` values as\npreferred alignment and if there's not enough space, it will pick the\nvalues which minimize the cropping.",
+          "type": "boolean"
+        },
+        {
+          "name": "horizontalOffset",
+          "attribute": "horizontalOffset",
+          "description": "A pixel value that will be added to the position calculated for the\ngiven `horizontalAlign`, in the direction of alignment. You can think\nof it as increasing or decreasing the distance to the side of the\nscreen given by `horizontalAlign`.\n\nIf `horizontalAlign` is \"left\" or \"center\", this offset will increase or\ndecrease the distance to the left side of the screen: a negative offset\nwill move the dropdown to the left; a positive one, to the right.\n\nConversely if `horizontalAlign` is \"right\", this offset will increase\nor decrease the distance to the right side of the screen: a negative\noffset will move the dropdown to the right; a positive one, to the left.",
+          "type": "number"
+        },
+        {
+          "name": "verticalOffset",
+          "attribute": "verticalOffset",
+          "description": "A pixel value that will be added to the position calculated for the\ngiven `verticalAlign`, in the direction of alignment. You can think\nof it as increasing or decreasing the distance to the side of the\nscreen given by `verticalAlign`.\n\nIf `verticalAlign` is \"top\" or \"middle\", this offset will increase or\ndecrease the distance to the top side of the screen: a negative offset\nwill move the dropdown upwards; a positive one, downwards.\n\nConversely if `verticalAlign` is \"bottom\", this offset will increase\nor decrease the distance to the bottom side of the screen: a negative\noffset will move the dropdown downwards; a positive one, upwards.",
+          "type": "number"
+        },
+        {
+          "name": "autoFitOnAttach",
+          "attribute": "autoFitOnAttach",
+          "description": "Set to true to auto-fit on attach.",
+          "type": "boolean"
+        },
+        {
+          "name": "fitPositionTarget",
+          "attribute": "fitPositionTarget",
+          "description": "When set it fits the positioning target width.",
+          "type": "boolean"
+        }
+      ],
+      "events": [
+        {
+          "name": "resize",
+          "description": "Dispatched when the element should re-layout itself."
+        },
+        {
+          "name": "opened",
+          "description": "Dispatched after the element is rendered opened"
+        },
+        {
+          "name": "closed",
+          "description": "Dispatched after the element is rendered closed"
+        },
+        {
+          "name": "cancel",
+          "description": "Dispatched when element is about to be closed. Cancelling the event stops the closing."
+        },
+        {
+          "name": "openedchange",
+          "description": "When the `opened` property changed."
+        },
+        {
+          "name": "overlay-canceled",
+          "description": "Deprecated"
+        },
+        {
+          "name": "iron-overlay-canceled",
+          "description": "Deprecated"
+        },
+        {
+          "name": "overlay-opened",
+          "description": "Deprecated"
+        },
+        {
+          "name": "iron-overlay-opened",
+          "description": "Deprecated"
+        },
+        {
+          "name": "overlay-closed",
+          "description": "Deprecated"
+        },
+        {
+          "name": "iron-overlay-closed",
+          "description": "Deprecated"
+        },
+        {
+          "name": "opened-changed",
+          "description": "Deprecated"
+        }
+      ]
+    },
+    {
       "name": "authorization-method",
       "path": "./authorization-method.js",
       "description": "An element that renders various authorization methods.\n\n## Development\n\nThe element mixes in multiple mixins from `src/` directory.\nEach mixin support an authorization method. When selection change (the `type`\nproperty) a render function from corresponding mixin is called.",
@@ -32,34 +763,49 @@
           "type": "boolean"
         },
         {
-          "name": "narrow",
-          "description": "Renders mobile friendly view.",
-          "type": "boolean"
-        },
-        {
           "name": "username",
+          "description": "Current username.\n\nUsed in the following types:\n- Basic\n- NTLM\n- Digest\n- OAuth 2",
           "type": "string"
         },
         {
           "name": "password",
+          "description": "Current password.\n\nUsed in the following types:\n- Basic\n- NTLM\n- Digest\n- OAuth 2",
           "type": "string"
         },
         {
           "name": "redirectUri",
+          "description": "Authorization redirect URI\n\nUsed in the following types:\n- OAuth 1\n- OAuth 2",
           "type": "string"
         },
         {
           "name": "accessTokenUri",
+          "description": "Endpoint to authorize the token (OAuth 1) or exchange code for token (OAuth 2).\n\nUsed in the following types:\n- OAuth 1\n- OAuth 2",
           "type": "string"
         },
         {
           "name": "authorizationUri",
+          "description": "An URI of authentication endpoint where the user should be redirected\nto authorize the app. This endpoint initialized OAuth flow.\n\nUsed in the following types:\n- OAuth 1\n- OAuth 2",
+          "type": "string"
+        },
+        {
+          "name": "token",
+          "description": "Oauth 1 or Bearer token (from the oauth console or received from auth server)\n\nUsed in the following types:\n- OAuth 1\n- Bearer",
           "type": "string"
         },
         {
           "name": "domain",
           "description": "Authorization domain\n\nUsed in the following types:\n- NTLM",
           "type": "string | undefined"
+        },
+        {
+          "name": "realm",
+          "description": "Server issued realm for Digest authorization.\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "nonce",
+          "description": "Server issued nonce for Digest authorization.\n\nUsed in the following types:\n- Digest\n- OAuth 1",
+          "type": "string"
         },
         {
           "name": "algorithm",
@@ -103,66 +849,50 @@
         },
         {
           "name": "requestBody",
-          "description": "Current request body.\n\nUsed in the following types:\n- Digest",
-          "type": "string"
+          "description": "Current request body.\n\nUsed in the following types:\n- Digest"
         },
         {
           "name": "consumerKey",
-          "description": "Used by OAuth 1",
+          "description": "Client ID aka consumer key\n\nUsed by OAuth 1",
           "type": "string"
         },
         {
           "name": "consumerSecret",
-          "description": "Used by OAuth 1",
-          "type": "string"
-        },
-        {
-          "name": "token",
-          "description": "Used by OAuth 1",
+          "description": "The client secret aka consumer secret\n\nUsed by OAuth 1",
           "type": "string"
         },
         {
           "name": "tokenSecret",
-          "description": "Used by OAuth 1",
+          "description": "Oauth 1 token secret (from the oauth console).\n\nUsed by OAuth 1",
           "type": "string"
         },
         {
           "name": "timestamp",
-          "description": "Used by OAuth 1",
-          "type": "string"
-        },
-        {
-          "name": "nonce",
-          "description": "Server issued nonce for Digest authorization.\n\nUsed in the following types:\n- Digest\n- OAuth 1",
-          "type": "string"
-        },
-        {
-          "name": "realm",
-          "description": "Server issued realm for Digest authorization.\n\nUsed in the following types:\n- Digest",
-          "type": "string"
+          "description": "Token request timestamp\n\nUsed by OAuth 1",
+          "type": "number"
         },
         {
           "name": "signatureMethod",
-          "description": "Used by OAuth 1",
+          "description": "Signature method. Enum {`HMAC-SHA256`, `HMAC-SHA1`, `PLAINTEXT`}\n\nUsed by OAuth 1",
           "type": "string"
         },
         {
           "name": "requestTokenUri",
-          "description": "Used by OAuth 1",
+          "description": "OAuth1 endpoint to obtain request token to request user authorization.\n\nUsed by OAuth 1",
           "type": "string"
         },
         {
           "name": "authTokenMethod",
-          "description": "Used by OAuth 1",
+          "description": "HTTP method to obtain authorization header.\nSpec recommends POST\n\nUsed by OAuth 1",
           "type": "string"
         },
         {
           "name": "authParamsLocation",
-          "description": "Used by OAuth 1",
+          "description": "A location of the OAuth 1 authorization parameters.\nIt can be either in the URL as a query string (`querystring` value)\nor in the authorization header (`authorization`) value.\n\nUsed in the following types:\n- OAuth 1",
           "type": "string"
         },
         {
-          "name": "responseType",
+          "name": "grantType",
           "description": "Selected authorization grand type.",
           "type": "string"
         },
@@ -189,39 +919,80 @@
         {
           "name": "tokenType",
           "description": "By default it is \"bearer\" as the only one defined in OAuth 2.0 spec.\nIf the token response contains `tokenType` property then this value is updated.",
-          "type": "string | undefined"
+          "type": "string"
         },
         {
           "name": "advanced",
           "description": "If set it renders authorization url, token url and scopes as advanced options\nwhich are then invisible by default. User can oen setting using the UI.",
-          "type": "boolean | undefined"
+          "type": "boolean"
         },
         {
           "name": "advancedOpened",
           "description": "If true then the advanced options are opened.",
-          "type": "boolean | undefined"
+          "type": "boolean"
         },
         {
-          "name": "noResponseType",
+          "name": "noGrantType",
           "description": "If set, the response type selector is hidden from the UI.",
-          "type": "boolean | undefined"
+          "type": "boolean"
         },
         {
           "name": "oauthDeliveryMethod",
           "description": "Informs about what filed of the authenticated request the token property should be set.\nBy default the value is `header` which corresponds to the `authorization` by default,\nbut it is configured by the `deliveryName` property.\n\nThis can be used by the AMF model when the API spec defines where the access token should be\nput in the authenticated request.",
-          "type": "\"header\" | \"query\" | \"body\" | undefined",
+          "type": "OAuth2DeliveryMethod",
           "default": "\"header\""
+        },
+        {
+          "name": "ccDeliveryMethod",
+          "description": "The client credentials delivery method.",
+          "type": "OAuth2DeliveryMethod",
+          "default": "\"body\""
         },
         {
           "name": "oauthDeliveryName",
           "description": "The name of the authenticated request property that carries the token.\nBy default it is `authorization` which corresponds to `header` value of the `deliveryMethod` property.\n\nBy setting both `deliveryMethod` and `deliveryName` you instruct the application (assuming it reads this values)\nwhere to put the authorization token.",
-          "type": "string | undefined",
+          "type": "string",
           "default": "\"authorization\""
         },
         {
           "name": "baseUri",
           "description": "The base URI to use to construct the correct URLs to the authorization endpoints.\n\nWhen the paths are relative then base URI is added to the path.\nRelative paths must start with '/'.\n\nNote, URL processing is happening internally in the component. The produced authorize event\nwill have base URI already applied.",
-          "type": "string | undefined"
+          "type": "string"
+        },
+        {
+          "name": "noPkce",
+          "description": "When this property is set then the PKCE option is not rendered for the\n`authorization_code`. This is mainly meant to be used by the `api-authorization-method`\nto keep this control disabled and override generated settings when the API spec\nsays that the PKCE is supported.",
+          "type": "boolean"
+        },
+        {
+          "name": "pkce",
+          "description": "Whether or not the PKCE extension is enabled for this authorization configuration.\nNote, PKCE, per the spec, is only available for `authorization_code` grantType.",
+          "type": "boolean"
+        },
+        {
+          "name": "credentialSource",
+          "description": "Selected credential source",
+          "type": "string"
+        },
+        {
+          "name": "allowRedirectUriChange",
+          "description": "When set it allows to edit the redirect URI by the user.",
+          "type": "boolean"
+        },
+        {
+          "name": "issuerUrl",
+          "description": "The OpenID discovery URI.",
+          "type": "string"
+        },
+        {
+          "name": "assertion",
+          "description": "The assertion parameter for the JWT token authorization.",
+          "type": "string"
+        },
+        {
+          "name": "deviceCode",
+          "description": "The device_code parameter for the device code authorization.",
+          "type": "string"
         }
       ],
       "properties": [
@@ -260,55 +1031,63 @@
           "type": "boolean"
         },
         {
-          "name": "narrow",
-          "attribute": "narrow",
-          "description": "Renders mobile friendly view.",
-          "type": "boolean"
-        },
-        {
           "name": "authorizing",
           "description": "Used in the following types:\n- OAuth 1\n- OAuth 2",
-          "type": "boolean | null"
+          "type": "boolean | undefined"
         },
         {
           "name": "username",
           "attribute": "username",
+          "description": "Current username.\n\nUsed in the following types:\n- Basic\n- NTLM\n- Digest\n- OAuth 2",
           "type": "string"
         },
         {
           "name": "password",
           "attribute": "password",
+          "description": "Current password.\n\nUsed in the following types:\n- Basic\n- NTLM\n- Digest\n- OAuth 2",
           "type": "string"
         },
         {
           "name": "redirectUri",
           "attribute": "redirectUri",
+          "description": "Authorization redirect URI\n\nUsed in the following types:\n- OAuth 1\n- OAuth 2",
           "type": "string"
         },
         {
           "name": "accessTokenUri",
           "attribute": "accessTokenUri",
+          "description": "Endpoint to authorize the token (OAuth 1) or exchange code for token (OAuth 2).\n\nUsed in the following types:\n- OAuth 1\n- OAuth 2",
           "type": "string"
         },
         {
           "name": "authorizationUri",
           "attribute": "authorizationUri",
+          "description": "An URI of authentication endpoint where the user should be redirected\nto authorize the app. This endpoint initialized OAuth flow.\n\nUsed in the following types:\n- OAuth 1\n- OAuth 2",
           "type": "string"
         },
         {
-          "name": "onchange",
-          "type": "EventListener | null"
-        },
-        {
-          "name": "eventsTarget",
-          "description": "By default the element listens on the `window` object. If this value is set,\nthen all events listeners will be attached to this object instead of `window`.",
-          "type": "EventTarget"
+          "name": "token",
+          "attribute": "token",
+          "description": "Oauth 1 or Bearer token (from the oauth console or received from auth server)\n\nUsed in the following types:\n- OAuth 1\n- Bearer",
+          "type": "string"
         },
         {
           "name": "domain",
           "attribute": "domain",
           "description": "Authorization domain\n\nUsed in the following types:\n- NTLM",
           "type": "string | undefined"
+        },
+        {
+          "name": "realm",
+          "attribute": "realm",
+          "description": "Server issued realm for Digest authorization.\n\nUsed in the following types:\n- Digest",
+          "type": "string"
+        },
+        {
+          "name": "nonce",
+          "attribute": "nonce",
+          "description": "Server issued nonce for Digest authorization.\n\nUsed in the following types:\n- Digest\n- OAuth 1",
+          "type": "string"
         },
         {
           "name": "algorithm",
@@ -361,107 +1140,64 @@
         {
           "name": "requestBody",
           "attribute": "requestBody",
-          "description": "Current request body.\n\nUsed in the following types:\n- Digest",
-          "type": "string"
+          "description": "Current request body.\n\nUsed in the following types:\n- Digest"
         },
         {
           "name": "consumerKey",
           "attribute": "consumerKey",
-          "description": "Used by OAuth 1",
+          "description": "Client ID aka consumer key\n\nUsed by OAuth 1",
           "type": "string"
         },
         {
           "name": "consumerSecret",
           "attribute": "consumerSecret",
-          "description": "Used by OAuth 1",
-          "type": "string"
-        },
-        {
-          "name": "token",
-          "attribute": "token",
-          "description": "Used by OAuth 1",
+          "description": "The client secret aka consumer secret\n\nUsed by OAuth 1",
           "type": "string"
         },
         {
           "name": "tokenSecret",
           "attribute": "tokenSecret",
-          "description": "Used by OAuth 1",
+          "description": "Oauth 1 token secret (from the oauth console).\n\nUsed by OAuth 1",
           "type": "string"
         },
         {
           "name": "timestamp",
           "attribute": "timestamp",
-          "description": "Used by OAuth 1",
-          "type": "string"
-        },
-        {
-          "name": "nonce",
-          "attribute": "nonce",
-          "description": "Server issued nonce for Digest authorization.\n\nUsed in the following types:\n- Digest\n- OAuth 1",
-          "type": "string"
-        },
-        {
-          "name": "realm",
-          "attribute": "realm",
-          "description": "Server issued realm for Digest authorization.\n\nUsed in the following types:\n- Digest",
-          "type": "string"
+          "description": "Token request timestamp\n\nUsed by OAuth 1",
+          "type": "number"
         },
         {
           "name": "signatureMethod",
           "attribute": "signatureMethod",
-          "description": "Used by OAuth 1",
+          "description": "Signature method. Enum {`HMAC-SHA256`, `HMAC-SHA1`, `PLAINTEXT`}\n\nUsed by OAuth 1",
           "type": "string"
         },
         {
           "name": "requestTokenUri",
           "attribute": "requestTokenUri",
-          "description": "Used by OAuth 1",
+          "description": "OAuth1 endpoint to obtain request token to request user authorization.\n\nUsed by OAuth 1",
           "type": "string"
         },
         {
           "name": "authTokenMethod",
           "attribute": "authTokenMethod",
-          "description": "Used by OAuth 1",
+          "description": "HTTP method to obtain authorization header.\nSpec recommends POST\n\nUsed by OAuth 1",
           "type": "string"
         },
         {
           "name": "authParamsLocation",
           "attribute": "authParamsLocation",
-          "description": "Used by OAuth 1",
+          "description": "A location of the OAuth 1 authorization parameters.\nIt can be either in the URL as a query string (`querystring` value)\nor in the authorization header (`authorization`) value.\n\nUsed in the following types:\n- OAuth 1",
           "type": "string"
         },
         {
           "name": "signatureMethods",
-          "description": "Used by OAuth 1",
+          "description": "List of currently support signature methods.\n\nUsed by OAuth 1",
           "type": "string[]"
         },
         {
-          "name": "isCustomResponseType",
-          "type": "boolean"
-        },
-        {
-          "name": "clientIdRequired",
-          "type": "boolean"
-        },
-        {
-          "name": "oauth2ClientSecretRendered",
-          "type": "boolean"
-        },
-        {
-          "name": "oauth2AuthorizationUriRendered",
-          "type": "boolean"
-        },
-        {
-          "name": "oauth2AccessTokenUriRendered",
-          "type": "boolean"
-        },
-        {
-          "name": "oauth2PasswordRendered",
-          "type": "boolean"
-        },
-        {
-          "name": "responseType",
-          "attribute": "responseType",
+          "name": "grantType",
+          "attribute": "grantType",
           "description": "Selected authorization grand type.",
           "type": "string"
         },
@@ -485,7 +1221,7 @@
         {
           "name": "allowedScopes",
           "description": "List of pre-defined scopes to choose from. It will be passed to the `oauth2-scope-selector`\nelement.",
-          "type": "string[]"
+          "type": "string[] | AllowedScope[]"
         },
         {
           "name": "preventCustomScopes",
@@ -503,61 +1239,680 @@
           "name": "tokenType",
           "attribute": "tokenType",
           "description": "By default it is \"bearer\" as the only one defined in OAuth 2.0 spec.\nIf the token response contains `tokenType` property then this value is updated.",
-          "type": "string | undefined"
+          "type": "string"
         },
         {
-          "name": "responseTypes",
-          "description": "Currently available response types.",
-          "type": "ResponseType[] | undefined"
+          "name": "grantTypes",
+          "description": "Currently available grant types.",
+          "type": "GrantType[]"
         },
         {
           "name": "advanced",
           "attribute": "advanced",
           "description": "If set it renders authorization url, token url and scopes as advanced options\nwhich are then invisible by default. User can oen setting using the UI.",
-          "type": "boolean | undefined"
+          "type": "boolean"
         },
         {
           "name": "advancedOpened",
           "attribute": "advancedOpened",
           "description": "If true then the advanced options are opened.",
-          "type": "boolean | undefined"
+          "type": "boolean"
         },
         {
-          "name": "noResponseType",
-          "attribute": "noResponseType",
+          "name": "noGrantType",
+          "attribute": "noGrantType",
           "description": "If set, the response type selector is hidden from the UI.",
-          "type": "boolean | undefined"
+          "type": "boolean"
         },
         {
           "name": "oauthDeliveryMethod",
           "attribute": "oauthDeliveryMethod",
           "description": "Informs about what filed of the authenticated request the token property should be set.\nBy default the value is `header` which corresponds to the `authorization` by default,\nbut it is configured by the `deliveryName` property.\n\nThis can be used by the AMF model when the API spec defines where the access token should be\nput in the authenticated request.",
-          "type": "\"header\" | \"query\" | \"body\" | undefined",
+          "type": "OAuth2DeliveryMethod",
           "default": "\"header\""
+        },
+        {
+          "name": "ccDeliveryMethod",
+          "attribute": "ccDeliveryMethod",
+          "description": "The client credentials delivery method.",
+          "type": "OAuth2DeliveryMethod",
+          "default": "\"body\""
         },
         {
           "name": "oauthDeliveryName",
           "attribute": "oauthDeliveryName",
           "description": "The name of the authenticated request property that carries the token.\nBy default it is `authorization` which corresponds to `header` value of the `deliveryMethod` property.\n\nBy setting both `deliveryMethod` and `deliveryName` you instruct the application (assuming it reads this values)\nwhere to put the authorization token.",
-          "type": "string | undefined",
+          "type": "string",
           "default": "\"authorization\""
         },
         {
           "name": "baseUri",
           "attribute": "baseUri",
           "description": "The base URI to use to construct the correct URLs to the authorization endpoints.\n\nWhen the paths are relative then base URI is added to the path.\nRelative paths must start with '/'.\n\nNote, URL processing is happening internally in the component. The produced authorize event\nwill have base URI already applied.",
-          "type": "string | undefined"
+          "type": "string"
         },
         {
           "name": "lastErrorMessage",
-          "description": "The error message returned by the authorization library.\nIt renders error dialog when an error ocurred. \nIt is automatically cleared when the user request the token again.",
-          "type": "string | undefined"
+          "description": "The error message returned by the authorization library.\nIt renders error dialog when an error ocurred.\nIt is automatically cleared when the user request the token again.",
+          "type": "string"
+        },
+        {
+          "name": "noPkce",
+          "attribute": "noPkce",
+          "description": "When this property is set then the PKCE option is not rendered for the\n`authorization_code`. This is mainly meant to be used by the `api-authorization-method`\nto keep this control disabled and override generated settings when the API spec\nsays that the PKCE is supported.",
+          "type": "boolean"
+        },
+        {
+          "name": "pkce",
+          "attribute": "pkce",
+          "description": "Whether or not the PKCE extension is enabled for this authorization configuration.\nNote, PKCE, per the spec, is only available for `authorization_code` grantType.",
+          "type": "boolean"
+        },
+        {
+          "name": "credentialsSource",
+          "description": "The definition of client credentials to be rendered for a given grant type.\nWhen set on the editor it renders a drop down where the user can choose from predefined\ncredentials (client id & secret).",
+          "type": "Oauth2Credentials[]"
+        },
+        {
+          "name": "credentialSource",
+          "attribute": "credentialSource",
+          "description": "Selected credential source",
+          "type": "string"
+        },
+        {
+          "name": "allowRedirectUriChange",
+          "attribute": "allowRedirectUriChange",
+          "description": "When set it allows to edit the redirect URI by the user.",
+          "type": "boolean"
+        },
+        {
+          "name": "issuerUrl",
+          "attribute": "issuerUrl",
+          "description": "The OpenID discovery URI.",
+          "type": "string"
+        },
+        {
+          "name": "assertion",
+          "attribute": "assertion",
+          "description": "The assertion parameter for the JWT token authorization.",
+          "type": "string"
+        },
+        {
+          "name": "deviceCode",
+          "attribute": "deviceCode",
+          "description": "The device_code parameter for the device code authorization.",
+          "type": "string"
+        },
+        {
+          "name": "onchange",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "eventsTarget",
+          "description": "By default the element listens on the `window` object. If this value is set,\nthen all events listeners will be attached to this object instead of `window`.",
+          "type": "EventTarget"
         }
       ],
       "events": [
         {
           "name": "change",
           "description": "When authorization state change"
+        }
+      ]
+    },
+    {
+      "name": "authorization-selector",
+      "path": "./authorization-selector.js",
+      "attributes": [
+        {
+          "name": "outlined",
+          "description": "Enables outlined theme.",
+          "type": "boolean"
+        },
+        {
+          "name": "compatibility",
+          "description": "Enables compatibility with Anypoint components.",
+          "type": "boolean"
+        },
+        {
+          "name": "attrForLabel",
+          "description": "An attribute to use to read value for the label to be rendered in the\ndrop down when `type` property cannot be translated to a common name.\n\nThis attribute should be set on the child element.",
+          "type": "string"
+        },
+        {
+          "name": "horizontal",
+          "description": "When set it renders the authorization form next to the drop down.\nUse this when there's enough screen to render the form.",
+          "type": "boolean"
+        },
+        {
+          "name": "multi",
+          "description": "If true, multiple selections are allowed.",
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "attrForSelected",
+          "description": "If you want to use an attribute value or property of an element for\n`selected` instead of the index, set this to the name of the attribute\nor property. Hyphenated values are converted to camel case when used to\nlook up the property of a selectable element. Camel cased values are\n*not* converted to hyphenated values for attribute lookup. It's\nrecommended that you provide the hyphenated form of the name so that\nselection works in both cases. (Use `attr-or-property-name` instead of\n`attrOrPropertyName`.)",
+          "type": "string"
+        },
+        {
+          "name": "selected",
+          "description": "Gets or sets the selected element. The default is to use the index of the item.",
+          "type": "string | number"
+        },
+        {
+          "name": "activateEvent",
+          "description": "The event that fires from items when they are selected. Selectable\nwill listen for this event from items and update the selection state.\nSet to empty string to listen to no events.",
+          "type": "string",
+          "default": "\"click\""
+        },
+        {
+          "name": "selectable",
+          "description": "This is a CSS selector string.  If this is set, only items that match the\nCSS selector are selectable.",
+          "type": "string"
+        },
+        {
+          "name": "selectedClass",
+          "description": "The class to set on elements when selected.",
+          "type": "string",
+          "default": "\"selected\""
+        },
+        {
+          "name": "selectedAttribute",
+          "description": "The attribute to set on elements when selected.",
+          "type": "string"
+        },
+        {
+          "name": "fallbackSelection",
+          "description": "Default fallback if the selection based on selected with `attrForSelected` is not found.",
+          "type": "string | number"
+        }
+      ],
+      "properties": [
+        {
+          "name": "styles",
+          "type": "CSSResult"
+        },
+        {
+          "name": "onchange",
+          "type": "EventListener"
+        },
+        {
+          "name": "type",
+          "type": "string | string[] | null"
+        },
+        {
+          "name": "outlined",
+          "attribute": "outlined",
+          "description": "Enables outlined theme.",
+          "type": "boolean"
+        },
+        {
+          "name": "compatibility",
+          "attribute": "compatibility",
+          "description": "Enables compatibility with Anypoint components.",
+          "type": "boolean"
+        },
+        {
+          "name": "attrForLabel",
+          "attribute": "attrForLabel",
+          "description": "An attribute to use to read value for the label to be rendered in the\ndrop down when `type` property cannot be translated to a common name.\n\nThis attribute should be set on the child element.",
+          "type": "string"
+        },
+        {
+          "name": "horizontal",
+          "attribute": "horizontal",
+          "description": "When set it renders the authorization form next to the drop down.\nUse this when there's enough screen to render the form.",
+          "type": "boolean"
+        },
+        {
+          "name": "multi",
+          "attribute": "multi",
+          "description": "If true, multiple selections are allowed.",
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "selectedValues",
+          "description": "Gets or sets the selected elements. This is used instead of `selected`\nwhen `multi` is true.",
+          "type": "HTMLElement[]"
+        },
+        {
+          "name": "selectedItems",
+          "description": "An array of currently selected items.",
+          "type": "array"
+        },
+        {
+          "name": "onselectedvalueschanged",
+          "description": "Registers a callback function for `selectedvalues-changed` event",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "onselectedvalueschange",
+          "description": "Registers a callback function for `selectedvalueschange` event",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "onselecteditemschanged",
+          "description": "Registers a callback function for `selecteditems-changed` event",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "onselecteditemschange",
+          "description": "Registers a callback function for `selecteditemschange` event",
+          "type": "EventListener | null"
+        },
+        {
+          "name": "attrForSelected",
+          "attribute": "attrForSelected",
+          "description": "If you want to use an attribute value or property of an element for\n`selected` instead of the index, set this to the name of the attribute\nor property. Hyphenated values are converted to camel case when used to\nlook up the property of a selectable element. Camel cased values are\n*not* converted to hyphenated values for attribute lookup. It's\nrecommended that you provide the hyphenated form of the name so that\nselection works in both cases. (Use `attr-or-property-name` instead of\n`attrOrPropertyName`.)",
+          "type": "string"
+        },
+        {
+          "name": "selected",
+          "attribute": "selected",
+          "description": "Gets or sets the selected element. The default is to use the index of the item.",
+          "type": "string | number"
+        },
+        {
+          "name": "selectedItem",
+          "description": "Returns the currently selected item.",
+          "type": "HTMLElement | undefined"
+        },
+        {
+          "name": "activateEvent",
+          "attribute": "activateEvent",
+          "description": "The event that fires from items when they are selected. Selectable\nwill listen for this event from items and update the selection state.\nSet to empty string to listen to no events.",
+          "type": "string",
+          "default": "\"click\""
+        },
+        {
+          "name": "selectable",
+          "attribute": "selectable",
+          "description": "This is a CSS selector string.  If this is set, only items that match the\nCSS selector are selectable.",
+          "type": "string"
+        },
+        {
+          "name": "selectedClass",
+          "attribute": "selectedClass",
+          "description": "The class to set on elements when selected.",
+          "type": "string",
+          "default": "\"selected\""
+        },
+        {
+          "name": "selectedAttribute",
+          "attribute": "selectedAttribute",
+          "description": "The attribute to set on elements when selected.",
+          "type": "string"
+        },
+        {
+          "name": "fallbackSelection",
+          "attribute": "fallbackSelection",
+          "description": "Default fallback if the selection based on selected with `attrForSelected` is not found.",
+          "type": "string | number"
+        },
+        {
+          "name": "items",
+          "description": "The list of items from which a selection can be made.",
+          "type": "HTMLElement[]"
+        },
+        {
+          "name": "onselectedchanged",
+          "type": "EventListener",
+          "deprecated": true
+        },
+        {
+          "name": "onselectedchange",
+          "type": "EventListener",
+          "deprecated": true
+        },
+        {
+          "name": "onselecteditemchanged",
+          "type": "EventListener",
+          "deprecated": true
+        },
+        {
+          "name": "onselecteditemchange",
+          "type": "EventListener",
+          "deprecated": true
+        },
+        {
+          "name": "onitemschanged",
+          "type": "EventListener",
+          "deprecated": true
+        },
+        {
+          "name": "onitemschange",
+          "type": "EventListener"
+        },
+        {
+          "name": "onselect",
+          "type": "EventListener"
+        },
+        {
+          "name": "ondeselect",
+          "type": "EventListener"
+        },
+        {
+          "name": "onactivate",
+          "type": "EventListener"
+        },
+        {
+          "name": "onselected",
+          "type": "EventListener"
+        }
+      ],
+      "events": [
+        {
+          "name": "change",
+          "description": "When configuration change"
+        },
+        {
+          "name": "selected-changed"
+        },
+        {
+          "name": "selectedchange"
+        },
+        {
+          "name": "selecteditem-changed"
+        },
+        {
+          "name": "selecteditemchange"
+        },
+        {
+          "name": "items-changed"
+        },
+        {
+          "name": "itemschange"
+        },
+        {
+          "name": "select",
+          "description": "When an item is selected. This also is dispatched when the `selected` property is set."
+        },
+        {
+          "name": "deselect",
+          "description": "When an item is deselected. This also is dispatched when the `selected` property is set."
+        },
+        {
+          "name": "activate",
+          "description": "When an item is about to be selected. Cancelling this event cancels the selection."
+        },
+        {
+          "name": "selected",
+          "description": "This is dispatched only through user interaction (the activateEvent). Dispatched after the `select` event."
+        }
+      ],
+      "slots": [
+        {
+          "name": "",
+          "description": "Authorization method to be rendered. Must have `type` attribute to be rendered."
+        },
+        {
+          "name": "aria",
+          "description": "For description of the selected method. Recognized by `aria-describedby` property of the auth method"
+        }
+      ]
+    },
+    {
+      "name": "oauth1-authorization",
+      "path": "./oauth1-authorization.js",
+      "properties": [
+        {
+          "name": "lastIssuedToken"
+        },
+        {
+          "name": "nonceChars",
+          "description": "Returns a list of characters that can be used to buid nonce.",
+          "type": "(String | null)[] | null"
+        }
+      ],
+      "deprecated": true,
+      "deprecatedMessage": "This element is no longer maintained and will be removed"
+    },
+    {
+      "name": "oauth2-authorization",
+      "path": "./oauth2-authorization.js",
+      "description": "An element that utilizes the `OAuth2Authorization` class in a web component.\nIt handles DOM events to perform the authorization.",
+      "attributes": [
+        {
+          "name": "tokenProxy",
+          "description": "When set it uses this value to prefix the call to the \nOAuth 2 token endpoint. This is to support use cases when \nthe requests should be proxied through a server to avoid CORS problems.",
+          "type": "string"
+        },
+        {
+          "name": "tokenProxyEncode",
+          "description": "When set it encodes the token URI value before adding it to the \n`tokenProxy`. This is to be used when the proxy takes the target \nURL as a query parameter.",
+          "type": "boolean"
+        }
+      ],
+      "properties": [
+        {
+          "name": "tokenProxy",
+          "attribute": "tokenProxy",
+          "description": "When set it uses this value to prefix the call to the \nOAuth 2 token endpoint. This is to support use cases when \nthe requests should be proxied through a server to avoid CORS problems.",
+          "type": "string"
+        },
+        {
+          "name": "tokenProxyEncode",
+          "attribute": "tokenProxyEncode",
+          "description": "When set it encodes the token URI value before adding it to the \n`tokenProxy`. This is to be used when the proxy takes the target \nURL as a query parameter.",
+          "type": "boolean"
+        },
+        {
+          "name": "eventsTarget",
+          "description": "By default the element listens on the `window` object. If this value is set,\nthen all events listeners will be attached to this object instead of `window`.",
+          "type": "EventTarget"
+        }
+      ]
+    },
+    {
+      "name": "oauth2-scope-selector",
+      "path": "./oauth2-scope-selector.js",
+      "description": "A selector for OAuth 2.0 scope. Provides the UI to enter a scope for OAuth 2.0 settings.\n\n#### Example\n\n```html\n<oauth2-scope-selector></oauth2-scope-selector>\n```\n\n`allowed-scopes` attribute allows to provide a list of predefined scopes\nsupported by the endpoint. When the list is set, autocomplete is enabled.\nAutocomplete is supported by `anypoint-autocomplete` element.\n\nSetting `preventCustomScopes` disallows adding a scope that is not defined\nin the `allowed-scopes` array. This can only work with `allowed-scopes` set\n\n#### Example\n\n```html\n<oauth2-scope-selector preventCustomScopes allowedScopes='[\"email\", \"profile\"]'></oauth2-scope-selector>\n```\n\nAnd in JavaScript\n\n```javascript\nvar selector = document.querySelector('oauth2-scope-selector');\nselector.allowedScopes = ['profile', 'email'];\n```\n\n## Adding scope documentation\n\n`allowedScopes` property can be an list of object to present scope description\nafter it is selected. Object in the array has to contain `label` and `description` properties.\n`label` is scope value.\n\n### Example\n\n```javascript\nconst scopes = [\n   {\n     'label': 'user',\n     'description': 'Grants read/write access to profile info only. Note that this scope includes user:email and user:follow.'\n   },\n   {'label': 'user:email', 'description': 'Grants read access to a user\\'s email addresses.'},\n   {'label': 'user:follow', 'description': 'Grants access to follow or unfollow other users.'}\n];\nconst selector = document.querySelector('oauth2-scope-selector');\nselector.allowedScopes = scopes;\n```\n\nSee demo page for example implementation.",
+      "attributes": [
+        {
+          "name": "name",
+          "description": "Form input name",
+          "type": "string"
+        },
+        {
+          "name": "currentValue",
+          "description": "Current value entered by the user. This is not a scope and it is not\nyet in the scopes list. User has to accept the scope before it become\navailable in the scopes list.",
+          "type": "string"
+        },
+        {
+          "name": "preventCustomScopes",
+          "description": "allowed to be add.",
+          "type": "boolean"
+        },
+        {
+          "name": "autoValidate",
+          "description": "Set to true to auto-validate the input value when it changes.",
+          "type": "boolean"
+        },
+        {
+          "name": "required",
+          "description": "Set to true to mark the input as required.",
+          "type": "boolean"
+        },
+        {
+          "name": "readOnly",
+          "description": "When set the editor is in read only mode.",
+          "type": "boolean"
+        },
+        {
+          "name": "compatibility",
+          "description": "Enables compatibility with Anypoint components.",
+          "type": "boolean"
+        },
+        {
+          "name": "outlined",
+          "description": "Enables Material Design outlined style",
+          "type": "boolean"
+        },
+        {
+          "name": "disabled",
+          "description": "When set the editor is in disabled mode.",
+          "type": "boolean"
+        },
+        {
+          "name": "focused",
+          "description": "If true the element currently has focus.",
+          "type": "boolean"
+        },
+        {
+          "name": "validator",
+          "description": "Name of the validator or validators to use.\nIf the element should be validated by more than one validator then separate names with\nspace. See docs for `ValidatorMixin` for description of how to define a\nvalidator.",
+          "type": "string"
+        },
+        {
+          "name": "invalid",
+          "description": "Returns true if the value is invalid.\n\nIf `autoValidate` is true, the `invalid` attribute is managed automatically,\nwhich can clobber attempts to manage it manually.",
+          "type": "boolean"
+        }
+      ],
+      "properties": [
+        {
+          "name": "styles",
+          "type": "CSSResult"
+        },
+        {
+          "name": "value",
+          "description": "List of scopes entered by the user. It can be used it pre-select scopes\nby providing an array with scope values.",
+          "type": "string[]"
+        },
+        {
+          "name": "name",
+          "attribute": "name",
+          "description": "Form input name",
+          "type": "string"
+        },
+        {
+          "name": "currentValue",
+          "attribute": "currentValue",
+          "description": "Current value entered by the user. This is not a scope and it is not\nyet in the scopes list. User has to accept the scope before it become\navailable in the scopes list.",
+          "type": "string"
+        },
+        {
+          "name": "allowedScopes",
+          "description": "List of available scopes.\nIt can be either list of string or list of object. If this is the\nlist of object then this expects to each object contain a `label`\nand `description` keys.\n\n### Example\n```\n{\n   'label': 'user',\n   'description': 'Grants read/write access to profile info only. '\n}\n```\nWhen the description is provided it will be displayed below the name\nof the scope.",
+          "type": "string[] | AllowedScope[] | undefined"
+        },
+        {
+          "name": "preventCustomScopes",
+          "attribute": "preventCustomScopes",
+          "description": "allowed to be add.",
+          "type": "boolean"
+        },
+        {
+          "name": "autoValidate",
+          "attribute": "autoValidate",
+          "description": "Set to true to auto-validate the input value when it changes.",
+          "type": "boolean"
+        },
+        {
+          "name": "required",
+          "attribute": "required",
+          "description": "Set to true to mark the input as required.",
+          "type": "boolean"
+        },
+        {
+          "name": "readOnly",
+          "attribute": "readOnly",
+          "description": "When set the editor is in read only mode.",
+          "type": "boolean"
+        },
+        {
+          "name": "compatibility",
+          "attribute": "compatibility",
+          "description": "Enables compatibility with Anypoint components.",
+          "type": "boolean"
+        },
+        {
+          "name": "outlined",
+          "attribute": "outlined",
+          "description": "Enables Material Design outlined style",
+          "type": "boolean"
+        },
+        {
+          "name": "disabled",
+          "attribute": "disabled",
+          "description": "When set the editor is in disabled mode.",
+          "type": "boolean"
+        },
+        {
+          "name": "focused",
+          "attribute": "focused",
+          "description": "If true the element currently has focus.",
+          "type": "boolean"
+        },
+        {
+          "name": "validator",
+          "attribute": "validator",
+          "description": "Name of the validator or validators to use.\nIf the element should be validated by more than one validator then separate names with\nspace. See docs for `ValidatorMixin` for description of how to define a\nvalidator.",
+          "type": "string"
+        },
+        {
+          "name": "validationStates",
+          "description": "After calling `validate()` this is be populated by latest result of the\ntest for each validator. Result item contains following properties:\n\n- validator `string` Name of the validator\n- valid `boolean` Result of the test\n- message `string` Error message\n\nThis property is `undefined` if `validator` is not set.",
+          "type": "ValidationResult[]"
+        },
+        {
+          "name": "invalid",
+          "attribute": "invalid",
+          "description": "Returns true if the value is invalid.\n\nIf `autoValidate` is true, the `invalid` attribute is managed automatically,\nwhich can clobber attempts to manage it manually.",
+          "type": "boolean"
+        }
+      ],
+      "events": [
+        {
+          "name": "change",
+          "description": "When the scopes list changed. Non bubbling."
+        },
+        {
+          "name": "invalidchange",
+          "description": "When the invalid value change. Non bubbling."
+        },
+        {
+          "name": "focusedchange",
+          "description": "When the `focused` property has changed"
+        },
+        {
+          "name": "disabledchange",
+          "description": "When the `disabled` property has changed"
+        }
+      ]
+    },
+    {
+      "name": "oidc-authorization",
+      "path": "./oidc-authorization.js",
+      "attributes": [
+        {
+          "name": "tokenProxy",
+          "description": "When set it uses this value to prefix the call to the \nOAuth 2 token endpoint. This is to support use cases when \nthe requests should be proxied through a server to avoid CORS problems.",
+          "type": "string"
+        },
+        {
+          "name": "tokenProxyEncode",
+          "description": "When set it encodes the token URI value before adding it to the \n`tokenProxy`. This is to be used when the proxy takes the target \nURL as a query parameter.",
+          "type": "boolean"
+        }
+      ],
+      "properties": [
+        {
+          "name": "tokenProxy",
+          "attribute": "tokenProxy",
+          "description": "When set it uses this value to prefix the call to the \nOAuth 2 token endpoint. This is to support use cases when \nthe requests should be proxied through a server to avoid CORS problems.",
+          "type": "string"
+        },
+        {
+          "name": "tokenProxyEncode",
+          "attribute": "tokenProxyEncode",
+          "description": "When set it encodes the token URI value before adding it to the \n`tokenProxy`. This is to be used when the proxy takes the target \nURL as a query parameter.",
+          "type": "boolean"
+        },
+        {
+          "name": "eventsTarget",
+          "description": "By default the element listens on the `window` object. If this value is set,\nthen all events listeners will be attached to this object instead of `window`.",
+          "type": "EventTarget"
         }
       ]
     }

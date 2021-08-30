@@ -13,6 +13,8 @@ export declare const authorizeImplicitCode: unique symbol;
 export declare const authorizeClientCredentials: unique symbol;
 export declare const authorizePassword: unique symbol;
 export declare const authorizeCustomGrant: unique symbol;
+export declare const authorizeDeviceCode: unique symbol;
+export declare const authorizeJwt: unique symbol;
 export declare const popupValue: unique symbol;
 export declare const popupUnloadHandler: unique symbol;
 export declare const tokenResponse: unique symbol;
@@ -337,4 +339,32 @@ export class OAuth2Authorization {
    * @returns {string} Message body as defined in OAuth2 spec.
    */
   getCustomGrantBody(): string;
+
+  /**
+   * Requests a token for the `urn:ietf:params:oauth:grant-type:device_code` response type.
+   *
+   * @return Promise resolved to a token info object.
+   */
+  [authorizeDeviceCode](): Promise<void>;
+
+  /**
+   * Generates a payload message for the `urn:ietf:params:oauth:grant-type:device_code` authorization.
+   *
+   * @return Message body as defined in OAuth2 spec.
+   */
+  getDeviceCodeBody(): string;
+
+  /**
+   * Requests a token for the `urn:ietf:params:oauth:grant-type:jwt-bearer` response type.
+   *
+   * @returns Promise resolved to a token info object.
+   */
+  [authorizeJwt](): Promise<void>;
+
+  /**
+   * Generates a payload message for the `urn:ietf:params:oauth:grant-type:jwt-bearer` authorization.
+   *
+   * @return Message body as defined in OAuth2 spec.
+   */
+  getJwtBody(): string;
 }

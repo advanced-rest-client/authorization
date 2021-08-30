@@ -1,4 +1,6 @@
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OidcTokenInfo} OidcTokenInfo */
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.OidcTokenError} OidcTokenError */
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.TokenInfo} TokenInfo */
 
 export class Tokens {
   /**
@@ -102,5 +104,28 @@ export class Tokens {
       listScopes = tokenScopes.split(' ');
     }
     return listScopes;
+  }
+
+  /**
+   * @param {TokenInfo} info
+   * @returns {OidcTokenInfo}
+   */
+  static fromTokenInfo(info) {
+    const result = /** @type OidcTokenInfo */ ({
+      responseType: '',
+      state: info.state,
+      accessToken: info.accessToken,
+      time: Date.now(),
+    });
+    if (info.scope) {
+      result.scope = info.scope;
+    }
+    if (info.tokenType) {
+      result.tokenType = info.tokenType;
+    }
+    if (info.expiresIn) {
+      result.expiresIn = info.expiresIn;
+    }
+    return result;
   }
 }

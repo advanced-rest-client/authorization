@@ -11,13 +11,17 @@ export default css`
     display: block;
   }
 
-  anypoint-input[compatibility][required],
-  anypoint-input[compatibility][invalidmessage],
-  anypoint-input[compatibility][infomessage]
-    anypoint-masked-input[compatibility][required],
-  anypoint-masked-input[compatibility][invalidmessage],
-  anypoint-masked-input[compatibility][infomessage] {
-    margin-bottom: 32px;
+  anypoint-masked-input[invalidMessage],
+  anypoint-masked-input[infoMessage],
+  anypoint-input[invalidMessage],
+  anypoint-input[infoMessage] {
+    margin-bottom: 26px;
+  }
+
+  anypoint-input[compatibility],
+  anypoint-masked-input[compatibility],
+  anypoint-dropdown-menu[compatibility] {
+    margin-bottom: 36px;
   }
 
   api-property-form-item {

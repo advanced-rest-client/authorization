@@ -443,6 +443,18 @@ export default class AuthorizationMethodElement extends EventsTargetMixin(LitEle
        * The OpenID discovery URI.
        */
       issuerUrl: { type: String },
+      /** 
+       * The assertion parameter for the JWT token authorization.
+       * 
+       * @link https://datatracker.ietf.org/doc/html/rfc7523#section-2.1
+       */
+      assertion: { type: String },
+      /** 
+       * The device_code parameter for the device code authorization.
+       * 
+       * @link https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
+       */
+      deviceCode: { type: String },
     };
   }
 
@@ -608,6 +620,10 @@ export default class AuthorizationMethodElement extends EventsTargetMixin(LitEle
     this.requestBody = undefined;
     /** @type string */
     this.issuerUrl = undefined;
+    /** @type {string} */
+    this.assertion = undefined;
+     /** @type {string} */
+    this.deviceCode = undefined;
 
     /** @type AuthUiBase */
     this[factory] = undefined;
