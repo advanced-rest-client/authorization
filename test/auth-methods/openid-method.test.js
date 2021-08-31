@@ -1,7 +1,7 @@
 import { html, fixture, assert, nextFrame } from '@open-wc/testing';
 import sinon from 'sinon';
 import { AuthorizationEventTypes, TransportEventTypes } from '@advanced-rest-client/arc-events';
-import { METHOD_OIDC } from '../../index.js';
+import { METHOD_OIDC } from '../../src/Utils.js';
 import '../../authorization-method.js';
 import env from '../env.js';
 import { discoveryCache, defaultGrantTypes } from '../../src/lib/ui/OpenID.js';
@@ -13,6 +13,7 @@ import { OidcAuthorization } from '../../src/OidcAuthorization.js';
 /** @typedef {import('../../src/lib/ui/OpenID').default} OpenID */
 /** @typedef {import('@advanced-rest-client/arc-events').OidcAuthorizeEvent} OidcAuthorizeEvent */
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OidcTokenInfo} OidcTokenInfo */
+/** @typedef {import('@advanced-rest-client/arc-types').ArcResponse.HTTPResponse} HTTPResponse */
 
 describe('OpenID Connect', () => {
   const oauth2redirect = `${window.location.origin}/oauth-popup.html`;
@@ -103,7 +104,11 @@ describe('OpenID Connect', () => {
       element.addEventListener(TransportEventTypes.httpTransport, function f(e) {
         element.removeEventListener(TransportEventTypes.httpTransport, f);
         const typed = /** @type CustomEvent */ (e);
-        typed.detail.result = Promise.resolve(JSON.stringify(oidcConfig));
+        typed.detail.result = Promise.resolve(/** @type HTTPResponse */ ({
+          payload: JSON.stringify(oidcConfig),
+          status: 200,
+          headers: '',
+        }));
       });
       await element.discover();
       assert.equal(element.authorizationUri, oidcConfig.authorization_endpoint, 'sets the authorizationUri');
@@ -137,9 +142,11 @@ describe('OpenID Connect', () => {
       element.addEventListener(TransportEventTypes.httpTransport, function f(e) {
         element.removeEventListener(TransportEventTypes.httpTransport, f);
         const typed = /** @type CustomEvent */ (e);
-        typed.detail.result = Promise.resolve({
+        typed.detail.result = Promise.resolve(/** @type HTTPResponse */ ({
           payload: JSON.stringify(oidcConfig),
-        });
+          status: 200,
+          headers: '',
+        }));
         typed.preventDefault();
       });
       await element.discover();
