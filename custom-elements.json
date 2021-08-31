@@ -980,7 +980,7 @@
           "type": "boolean"
         },
         {
-          "name": "issuerUrl",
+          "name": "issuerUri",
           "description": "The OpenID discovery URI.",
           "type": "string"
         },
@@ -1326,8 +1326,8 @@
           "type": "boolean"
         },
         {
-          "name": "issuerUrl",
-          "attribute": "issuerUrl",
+          "name": "issuerUri",
+          "attribute": "issuerUri",
           "description": "The OpenID discovery URI.",
           "type": "string"
         },
