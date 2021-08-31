@@ -21,8 +21,10 @@ export declare class OidcAuthorization extends OAuth2Authorization {
   /**
    * Creates a token info object for each requested response type. These are created from the params received from the 
    * redirect URI. This means that it might not be complete (for code response type).
+   * 
+   * @param time Timestamp when the tokens were created
    */
-  prepareTokens(params: URLSearchParams): OidcTokenInfo[];
+  prepareTokens(params: URLSearchParams, time: number): OidcTokenInfo[];
 
   /**
    * Finishes the authorization.
