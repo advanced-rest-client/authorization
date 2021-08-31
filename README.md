@@ -137,6 +137,70 @@ const editor = document.querySelector('authorization-method[oauth 2]');
 editor.credentialsSource = credentialsSource;
 ```
 
+### OpenID Connect
+
+Use the `OidcAuthorization` library to perform the authorization. Use the `open id` type on the `authorization-method` element to build an UI for the OpenID Connect.
+
+```html
+<script src="@advanced-rest-client/authorization/authorization-method.js" type="module"></script>
+<script src="@advanced-rest-client/authorization/oidc-authorization.js" type="module"></script>
+
+<authorization-method
+  type="open id"
+  issuerUri="https://"
+  redirectUri="https://..."
+></authorization-method>
+
+<oidc-authorization></oidc-authorization>
+```
+
+Note 1.
+
+When the user query the discovery endpoint at fist the component uses `TransportEvents.httpTransport` event to make the HTTP request. This event should be handled by the hosting application when the discovery endpoint cannot be read by a browser (CORS). When this event is not handled or does not return data then the `fetch` API is used to read the data.
+
+```html
+<authorization-method
+  id="oidc"
+  type="open id"
+  issuerUri="https://"
+  redirectUri="https://..."
+  responseType="code"
+  grantType="code"
+></authorization-method>
+
+<script type="module">
+  import { TransportEventTypes } from "@advanced-rest-client/arc-events";
+
+  async function makeHttp(method, url, headers, payload) {
+    // make a proxy request.
+  }
+
+  oidc.addEventListener(TransportEventTypes.httpTransport, (e) => {
+    const { method, url, headers, payload } = e.detail.request;
+    e.detail.result = makeHttp(method, url, headers, payload);
+  });
+</script>
+```
+
+Note 2.
+
+The user can pick which token to use with the HTTP request. Unlike `oauth 2` type, the access token is not populated on the element and the current selection can only be read by calling the `serialize()` function.
+
+```html
+<authorization-method
+  id="oidc"
+  type="open id"
+  issuerUri="https://"
+  redirectUri="https://..."
+  responseType="code"
+  grantType="code"
+></authorization-method>
+<script>
+  await oidc.authorize();
+  const result = oidc.serialize();
+</script>
+```
+
 ## Development
 
 ```sh
