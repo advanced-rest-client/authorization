@@ -11,13 +11,17 @@ export default css`
     display: block;
   }
 
-  anypoint-input[compatibility][required],
-  anypoint-input[compatibility][invalidmessage],
-  anypoint-input[compatibility][infomessage]
-    anypoint-masked-input[compatibility][required],
-  anypoint-masked-input[compatibility][invalidmessage],
-  anypoint-masked-input[compatibility][infomessage] {
-    margin-bottom: 32px;
+  anypoint-masked-input[invalidMessage],
+  anypoint-masked-input[infoMessage],
+  anypoint-input[invalidMessage],
+  anypoint-input[infoMessage] {
+    margin-bottom: 26px;
+  }
+
+  anypoint-input[compatibility],
+  anypoint-masked-input[compatibility],
+  anypoint-dropdown-menu[compatibility] {
+    margin-bottom: 36px;
   }
 
   api-property-form-item {
@@ -141,5 +145,43 @@ export default css`
 
   .delivery-dropdown {
     margin: 16px 0;
+  }
+
+  .issuer-input {
+    display: flex;
+    align-items: center;
+  }
+
+  .issuer-input anypoint-input {
+    flex: 1;
+  }
+
+  .tokens-title {
+    margin: 12px 8px;
+    font-weight: bold;
+  }
+
+  .token-option {
+    display: flex;
+    align-items: baseline;
+  }
+
+  .token-option input[type=radio] {
+    margin: 8px;
+  }
+
+  .token-option .token-info {
+    overflow: hidden;
+  }
+
+  .token-value {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  .token-option .token-label {
+    margin: 8px 0;
+    display: block;
   }
 `;

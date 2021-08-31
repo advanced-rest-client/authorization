@@ -13,10 +13,8 @@ import {
   popupUnloadHandler,
   tokenResponse,
   codeValue,
-  processTokenResponse,
   processPopupRawData,
   codeVerifierValue,
-  processCodeResponse,
 } from '../../src/OAuth2Authorization.js';
 
 describe('OAuth2', () => {
@@ -257,12 +255,18 @@ describe('OAuth2', () => {
         assert.isBelow(verifier.length, 129); // max length 128 characters
       });
 
-      it('sets client_secret and client_id', async () => {
+      it('sets the client_id', async () => {
         const cnf = { ...baseSettings, clientSecret: 'secret', grantType };
         const auth = new OAuth2Authorization(cnf);
         const result = await auth.constructPopupUrl();
-        assert.isTrue(result.includes('client_secret=secret'));
         assert.isTrue(result.includes('client_id=test+client+id'));
+      });
+
+      it('does not set client_secret', async () => {
+        const cnf = { ...baseSettings, clientSecret: 'secret', grantType };
+        const auth = new OAuth2Authorization(cnf);
+        const result = await auth.constructPopupUrl();
+        assert.isFalse(result.includes('client_secret=secret'));
       });
     });
   
@@ -720,10 +724,10 @@ describe('OAuth2', () => {
         clientId: 'test client id',
       });
 
-      it('calls [processTokenResponse]', () => {
+      it('calls processTokenResponse', () => {
         const client = new OAuth2Authorization(baseSettings);
         client[rejectFunction] = () => {};
-        const spy = sinon.spy(client, processTokenResponse);
+        const spy = sinon.spy(client, 'processTokenResponse');
         client[processPopupRawData]('access_token=b');
         assert.isTrue(spy.called);
       });
@@ -731,7 +735,7 @@ describe('OAuth2', () => {
       it('ignores when no parameters', () => {
         const client = new OAuth2Authorization(baseSettings);
         client[rejectFunction] = () => {};
-        const spy = sinon.spy(client, processTokenResponse);
+        const spy = sinon.spy(client, 'processTokenResponse');
         client[processPopupRawData]('');
         assert.isFalse(spy.called);
       });
@@ -752,38 +756,11 @@ describe('OAuth2', () => {
             scope: 'a b',
             token_type: 'tt',
           });
-          const result = instance[processCodeResponse](body, mime);
+          const result = instance.processCodeResponse(body, mime);
           assert.equal(result.accessToken, 't123', 'accessToken is set');
           assert.equal(result.expiresIn, 10, 'expiresIn is set');
-          assert.deepEqual(result.scope, ['a', 'b'], 'scope is set');
+          assert.deepEqual(result.scope, 'a b', 'scope is set');
           assert.equal(result.tokenType, 'tt', 'tokenType is set');
-          assert.typeOf(result.expiresAt, 'number', 'expiresAt is set');
-          assert.isFalse(result.expiresAssumed, 'expiresAssumed is set');
-        });
-
-        it('throws error when returned error', () => {
-          const body = JSON.stringify({
-            error: 'client_error',
-            error_description: 'this is an error',
-          });
-          let e;
-          try {
-            instance[processCodeResponse](body, mime);
-          } catch (cause) {
-            e = cause;
-          }
-          assert.equal(e.code, 'client_error');
-          assert.equal(e.message, 'this is an error');
-        });
-
-        it('returns empty scope when missing', () => {
-          const body = JSON.stringify({
-            access_token: 't123',
-            expires_in: 10,
-            token_type: 'tt',
-          });
-          const result = instance[processCodeResponse](body, mime);
-          assert.deepEqual(result.scope, []);
         });
 
         it('ignores token_type when missing', () => {
@@ -791,7 +768,7 @@ describe('OAuth2', () => {
             access_token: 't123',
             expires_in: 10,
           });
-          const result = instance[processCodeResponse](body, mime);
+          const result = instance.processCodeResponse(body, mime);
           assert.isUndefined(result.tokenType);
         });
       });
@@ -810,38 +787,10 @@ describe('OAuth2', () => {
           params.set('scope', 'a b');
           params.set('token_type', 'tt');
           const body = params.toString();
-          const result = instance[processCodeResponse](body, mime);
+          const result = instance.processCodeResponse(body, mime);
           assert.equal(result.accessToken, 't123', 'accessToken is set');
           assert.equal(result.expiresIn, 10, 'expiresIn is set');
-          assert.deepEqual(result.scope, ['a', 'b'], 'scope is set');
-          assert.equal(result.tokenType, 'tt', 'tokenType is set');
-          assert.typeOf(result.expiresAt, 'number', 'expiresAt is set');
-          assert.isFalse(result.expiresAssumed, 'expiresAssumed is set');
-        });
-
-        it('throws error when returned error', () => {
-          const params = new URLSearchParams();
-          params.set('error', 'client_error');
-          params.set('error_description', 'this is an error');
-          const body = params.toString();
-          let e;
-          try {
-            instance[processCodeResponse](body, mime);
-          } catch (cause) {
-            e = cause;
-          }
-          assert.equal(e.code, 'client_error');
-          assert.equal(e.message, 'this is an error');
-        });
-
-        it('returns empty scope when missing', () => {
-          const params = new URLSearchParams();
-          params.set('access_token', 't123');
-          params.set('expires_in', '10');
-          params.set('token_type', 'tt');
-          const body = params.toString();
-          const result = instance[processCodeResponse](body, mime);
-          assert.deepEqual(result.scope, []);
+          assert.equal(result.scope, 'a b', 'scope is set');
         });
 
         it('ignores token_type when missing', () => {
@@ -849,9 +798,73 @@ describe('OAuth2', () => {
           params.set('access_token', 't123');
           params.set('expires_in', '10');
           const body = params.toString();
-          const result = instance[processCodeResponse](body, mime);
+          const result = instance.processCodeResponse(body, mime);
           assert.isUndefined(result.tokenType);
         });
+      });
+    });
+
+    describe('mapCodeResponse()', () => {
+      /** @type OAuth2Authorization */
+      let instance;
+      beforeEach(() => {
+        instance = new OAuth2Authorization({
+          scopes: ['x', 'y', 'z'],
+        });
+      });
+
+      it('throws error when returned error', () => {
+        const body = {
+          error: 'client_error',
+          errorDescription: 'this is an error',
+        };
+        let e;
+        try {
+          instance.mapCodeResponse(body);
+        } catch (cause) {
+          e = cause;
+        }
+        assert.equal(e.code, 'client_error');
+        assert.equal(e.message, 'this is an error');
+      });
+
+      it('processes passed scopes', () => {
+        const body = {
+          accessToken: 't123',
+          expiresIn: 10,
+          scope: 'a b',
+        };
+        const result = instance.mapCodeResponse(body);
+        assert.deepEqual(result.scope, ['a', 'b']);
+      });
+
+      it('adds settings scopes', () => {
+        const body = {
+          accessToken: 't123',
+          expiresIn: 10,
+        };
+        const result = instance.mapCodeResponse(body);
+        assert.deepEqual(result.scope, ['x', 'y', 'z']);
+      });
+
+      it('processes expiresIn', () => {
+        const body = {
+          accessToken: 't123',
+          expiresIn: '10',
+        };
+        const result = instance.mapCodeResponse(body);
+        assert.strictEqual(result.expiresIn, 10);
+        assert.isFalse(result.expiresAssumed);
+      });
+
+      it('adds the expiresAt', () => {
+        const body = {
+          accessToken: 't123',
+          expiresIn: 10,
+        };
+        const result = instance.mapCodeResponse(body);
+        const expected = Date.now() + (10 * 1000);
+        assert.approximately(result.expiresAt, expected, 1);
       });
     });
   });

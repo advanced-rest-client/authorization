@@ -463,6 +463,25 @@ export default class AuthorizationMethod extends EventsTargetMixin(LitElement) {
    * @attribute
    */
   allowRedirectUriChange: boolean;
+  /** 
+   * The OpenID discovery URI.
+   * @attribute
+   */
+  issuerUri: string;
+  /** 
+   * The assertion parameter for the JWT token authorization.
+   * 
+   * @link https://datatracker.ietf.org/doc/html/rfc7523#section-2.1
+   * @attribute
+   */
+  assertion: string;
+  /** 
+   * The device_code parameter for the device code authorization.
+   * 
+   * @link https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
+   * @attribute
+   */
+  deviceCode: string;
 
   onchange: EventListener | null;
 
@@ -518,6 +537,13 @@ export default class AuthorizationMethod extends EventsTargetMixin(LitElement) {
   * @throws {Error} When authorization error.
   */
   authorize(): Promise<any | null>;
+
+  /**
+   * When the type is `open id` it reads the discovery URL data and populates
+   * the UI with them. This is equivalent to clicking on the `read` button
+   * in the OpenID type authorization.
+   */
+  discover(): Promise<void>;
 
   // /**
   //  * Handler for the `oauth1-token-response` custom event.

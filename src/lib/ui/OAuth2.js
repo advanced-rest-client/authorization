@@ -10,7 +10,9 @@ import '@advanced-rest-client/arc-icons/arc-icon.js';
 import { passwordTemplate, inputTemplate } from '../../CommonTemplates.js';
 import AuthUiBase from "./AuthUiBase.js";
 import '../../../oauth2-scope-selector.js';
-import { CUSTOM_CREDENTIALS, generateState, readUrlValue, validateRedirectUri } from "../../Utils.js";
+import { CUSTOM_CREDENTIALS, generateState, readUrlValue, selectNode, validateRedirectUri } from "../../Utils.js";
+import * as KnownGrants from '../KnownGrants.js';
+
 
 /** @typedef {import('lit-element').TemplateResult} TemplateResult */
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OAuth2Authorization} OAuth2Authorization */
@@ -35,42 +37,30 @@ import { CUSTOM_CREDENTIALS, generateState, readUrlValue, validateRedirectUri } 
  */
 export const oauth2GrantTypes = [
   {
-    type: "implicit",
+    type: KnownGrants.implicit,
     label: "Access token (browser flow)",
   },
   {
-    type: "authorization_code",
+    type: KnownGrants.code,
     label: "Authorization code (server flow)",
   },
   {
-    type: "client_credentials",
+    type: KnownGrants.clientCredentials,
     label: "Client credentials",
   },
   {
-    type: "password",
+    type: KnownGrants.password,
     label: "Password",
   },
+  {
+    type: KnownGrants.deviceCode,
+    label: "Device code",
+  },
+  {
+    type: KnownGrants.jwtBearer,
+    label: "JWT Bearer",
+  },
 ];
-
-/**
- * @param {Element} node
- */
-const makeNodeSelection = (node) => {
-  const { body } = document;
-  // @ts-ignore
-  if (body.createTextRange) {
-    // @ts-ignore
-    const range = body.createTextRange();
-    range.moveToElementText(node);
-    range.select();
-  } else if (window.getSelection) {
-    const selection = window.getSelection();
-    const range = document.createRange();
-    range.selectNode(node);
-    selection.removeAllRanges();
-    selection.addRange(range);
-  }
-};
 
 /**
  * A handler for `focus` event on a label that contains text and
@@ -80,7 +70,7 @@ const makeNodeSelection = (node) => {
  */
 const selectFocusable = (e) => {
   const node = /** @type {HTMLElement} */ (e.target);
-  makeNodeSelection(node);
+  selectNode(node);
 };
 
 export default class OAuth2 extends AuthUiBase {
@@ -92,59 +82,90 @@ export default class OAuth2 extends AuthUiBase {
     return (
       !!grantType &&
       ![
-        "implicit",
-        "authorization_code",
-        "client_credentials",
-        "password",
+        KnownGrants.implicit,
+        KnownGrants.code,
+        KnownGrants.clientCredentials,
+        KnownGrants.password,
+        KnownGrants.jwtBearer,
+        KnownGrants.deviceCode,
       ].includes(grantType)
     );
   }
 
+  /**
+   * @returns {boolean} true when the client id field is required.
+   */
   get clientIdRequired() {
     const { grantType } = this;
-    return !["client_credentials", "password"].includes(grantType);
+    return ![KnownGrants.clientCredentials, KnownGrants.password, KnownGrants.deviceCode].includes(grantType);
   }
 
-  get oauth2ClientSecretRendered() {
-    const { grantType, isCustomGrantType } = this;
-    return (
-      isCustomGrantType ||
-      (!!grantType &&
-        ["authorization_code", "client_credentials", "password"].includes(
-          grantType
-        ))
-    );
-  }
-
-  get oauth2ClientSecretRequired() {
+  /**
+   * @returns {boolean} true when the client id field is rendered.
+   */
+  get hasClientId() {
     const { grantType } = this;
-    return ["authorization_code"].includes(grantType);
+    return ![KnownGrants.jwtBearer].includes(grantType);
   }
 
-  get oauth2AuthorizationUriRendered() {
+  /**
+   * @returns {boolean} true when the client secret field is rendered.
+   */
+  get hasClientSecret() {
     const { grantType, isCustomGrantType } = this;
-    return (
-      isCustomGrantType ||
-      (!!grantType && ["implicit", "authorization_code"].includes(grantType))
-    );
+    if (!grantType) {
+      return false;
+    }
+    if (isCustomGrantType) {
+      return isCustomGrantType;
+    }
+    return [
+      KnownGrants.code, 
+      KnownGrants.clientCredentials, 
+      KnownGrants.password,
+      KnownGrants.deviceCode,
+    ].includes(grantType);
   }
 
-  get oauth2AccessTokenUriRendered() {
-    const { grantType, isCustomGrantType } = this;
-    return (
-      isCustomGrantType ||
-      (!!grantType &&
-        ["client_credentials", "authorization_code", "password"].includes(
-          grantType
-        ))
-    );
+  /**
+   * @returns {boolean} true when the client secret field is required.
+   */
+  get clientSecretRequired() {
+    const { grantType } = this;
+    return [KnownGrants.code].includes(grantType);
   }
 
-  get oauth2PasswordRendered() {
+  /**
+   * @returns {boolean} true when the authorization URI field is rendered.
+   */
+  get authorizationUriRendered() {
     const { grantType, isCustomGrantType } = this;
-    return (
-      isCustomGrantType || (!!grantType && ["password"].includes(grantType))
-    );
+    return isCustomGrantType || [
+      KnownGrants.implicit, 
+      KnownGrants.code,
+    ].includes(grantType);
+  }
+
+  /**
+   * @returns {boolean} true when the token URI field is rendered.
+   */
+  get accessTokenUriRendered() {
+    const { grantType, isCustomGrantType } = this;
+    return  isCustomGrantType || [
+      KnownGrants.clientCredentials, 
+      KnownGrants.code, 
+      KnownGrants.password,
+      KnownGrants.jwtBearer,
+      KnownGrants.deviceCode,
+    ].includes(grantType);
+  }
+
+  /**
+   * @returns {boolean} true when the username and password fields are rendered.
+   */
+  get passwordRendered() {
+    const { grantType, isCustomGrantType } = this;
+    return isCustomGrantType || [KnownGrants.password].includes(grantType);
   }
 
   /**
@@ -152,7 +173,7 @@ export default class OAuth2 extends AuthUiBase {
    */
   get hasRedirectUri() {
     const { grantType } = this;
-    return ["implicit", "authorization_code"].includes(grantType);
+    return [KnownGrants.implicit, KnownGrants.code].includes(grantType);
   }
 
   /**
@@ -326,13 +347,32 @@ export default class OAuth2 extends AuthUiBase {
     this.allowRedirectUriChange = undefined;
     /** 
      * The value of the username filed.
+     * @type {string}
      */
-    this.password = '';
+    this.password = undefined;
     /** 
      * The value of the password filed.
+     * @type {string}
      */
-    this.username = '';
+    this.username = undefined;
     this.credentialsDisabled = this.disabled;
+    /** 
+     * The assertion parameter for the JWT token authorization.
+     * @type {string}
+     * @link https://datatracker.ietf.org/doc/html/rfc7523#section-2.1
+     */
+    this.assertion = '';
+    /** 
+     * The device_code parameter for the device code authorization.
+     * @type {string}
+     * @link https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
+     */
+    this.deviceCode = '';
+    /** 
+     * A flag describing that the redirect URL editor is rendered.
+     * @type {boolean}
+     */
+    this.editingRedirectUri = false;
 
     this._advHandler = this._advHandler.bind(this);
     this._clickCopyAction = this._clickCopyAction.bind(this);
@@ -360,16 +400,16 @@ export default class OAuth2 extends AuthUiBase {
       this.tokenType = state.tokenType;
     }
     switch (type) {
-      case 'implicit':
+      case KnownGrants.implicit:
         this.authorizationUri = state.authorizationUri;
         break;
-      case 'authorization_code':
+      case KnownGrants.code:
         this.authorizationUri = state.authorizationUri;
         this.clientSecret = state.clientSecret;
         this.accessTokenUri = state.accessTokenUri;
         this.pkce = state.pkce;
         break;
-      case 'client_credentials':
+      case KnownGrants.clientCredentials:
         // The server flow.
         this.clientSecret = state.clientSecret;
         this.accessTokenUri = state.accessTokenUri;
@@ -377,12 +417,21 @@ export default class OAuth2 extends AuthUiBase {
           this.ccDeliveryMethod = state.deliveryMethod;
         }
         break;
-      case 'password':
+      case KnownGrants.password:
         // The server flow.
         this.username = state.username;
         this.password = state.password;
         this.accessTokenUri = state.accessTokenUri;
         this.clientSecret = state.clientSecret;
+        break;
+      case KnownGrants.deviceCode:
+        this.deviceCode = state.deviceCode;
+        this.accessTokenUri = state.accessTokenUri;
+        this.clientSecret = state.clientSecret;
+        break;
+      case KnownGrants.jwtBearer:
+        this.assertion = state.assertion;
+        this.accessTokenUri = state.accessTokenUri;
         break;
       default:
         this.authorizationUri = state.authorizationUri;
@@ -411,12 +460,12 @@ export default class OAuth2 extends AuthUiBase {
     });
 
     switch (grantType) {
-      case 'implicit':
+      case KnownGrants.implicit:
         // The browser flow.
         detail.authorizationUri = readUrlValue(this.authorizationUri, baseUri);
         detail.redirectUri = readUrlValue(this.redirectUri, baseUri);
         break;
-      case 'authorization_code':
+      case KnownGrants.code:
         // The server flow.
         detail.authorizationUri = readUrlValue(this.authorizationUri, baseUri);
         detail.clientSecret = this.clientSecret;
@@ -425,7 +474,7 @@ export default class OAuth2 extends AuthUiBase {
         detail.pkce = this.pkce;
         break;
       case 'application':
-      case 'client_credentials':
+      case KnownGrants.clientCredentials:
         // The server flow.
         detail.accessTokenUri = readUrlValue(this.accessTokenUri, baseUri);
         detail.clientSecret = this.clientSecret;
@@ -436,10 +485,22 @@ export default class OAuth2 extends AuthUiBase {
           detail.deliveryMethod = 'body';
         }
         break;
-      case 'password':
+      case KnownGrants.password:
         // The server flow.
         detail.username = this.username;
         detail.password = this.password;
+        detail.accessTokenUri = readUrlValue(this.accessTokenUri, baseUri);
+        detail.clientSecret = this.clientSecret;
+        break;
+      case KnownGrants.jwtBearer:
+        // https://datatracker.ietf.org/doc/html/rfc7523#section-2.1
+        detail.assertion = this.assertion;
+        detail.accessTokenUri = readUrlValue(this.accessTokenUri, baseUri);
+        delete detail.clientId;
+        break;
+      case KnownGrants.deviceCode:
+        // https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
+        detail.deviceCode = this.deviceCode;
         detail.accessTokenUri = readUrlValue(this.accessTokenUri, baseUri);
         detail.clientSecret = this.clientSecret;
         break;
@@ -493,6 +554,8 @@ export default class OAuth2 extends AuthUiBase {
     this.clientSecret = '';
     this.username = '';
     this.password = '';
+    this.assertion = '';
+    this.deviceCode = '';
     this._autoHideSet = false;
 
     this.defaults();
@@ -529,7 +592,7 @@ export default class OAuth2 extends AuthUiBase {
       if (!tokenInfo) {
         return null;
       }
-      if (detail.grantType === 'implicit' && tokenInfo.state !== state) {
+      if (detail.grantType === KnownGrants.implicit && tokenInfo.state !== state) {
         return null;
       }
       if (tokenInfo.accessToken && tokenInfo.accessToken !== this.accessToken) {
@@ -566,17 +629,19 @@ export default class OAuth2 extends AuthUiBase {
     let advOpened;
     let changed = false;
     switch (grantType) {
-      case 'implicit':
+      case KnownGrants.implicit:
         advOpened = !(hasScopes && !!this.authorizationUri);
         break;
-      case 'authorization_code':
+      case KnownGrants.code:
+      case KnownGrants.jwtBearer:
+      case KnownGrants.deviceCode:
         advOpened = !(
           hasScopes &&
           !!this.authorizationUri &&
           !!this.accessTokenUri
         );
         break;
-      case 'client_credentials':
+      case KnownGrants.clientCredentials:
         advOpened = !this.accessTokenUri;
         break;
       default:
@@ -637,7 +702,7 @@ export default class OAuth2 extends AuthUiBase {
     if (elm.copy()) {
       // this.shadowRoot.querySelector('#clipboardToast').opened = true;
     }
-    setTimeout(() => makeNodeSelection(node));
+    setTimeout(() => selectNode(node));
   }
 
   /**
@@ -669,7 +734,7 @@ export default class OAuth2 extends AuthUiBase {
    * Sets the editing flag and requests the update.
    */
   async _editRedirectUriHandler() {
-    this._editingRedirectUri = true;
+    this.editingRedirectUri = true;
     await this.requestUpdate();
     const input = /** @type HTMLElement */ (this.target.shadowRoot.querySelector('.redirect-input'));
     if (input) {
@@ -705,7 +770,7 @@ export default class OAuth2 extends AuthUiBase {
    * @param {string} value The new value to set.
    */
   commitRedirectUri(value) {
-    if (!this._editingRedirectUri) {
+    if (!this.editingRedirectUri) {
       // this is needed to make sure the value won't change on escape key press
       // via the blur event
       return;
@@ -726,7 +791,7 @@ export default class OAuth2 extends AuthUiBase {
    * Resets the redirect URI edit flag and requests an update.
    */
   cancelRedirectUri() {
-    this._editingRedirectUri = false;
+    this.editingRedirectUri = false;
     this.requestUpdate();
   }
 
@@ -793,6 +858,7 @@ export default class OAuth2 extends AuthUiBase {
       this.credentialsDisabled = this.disabled;
     }
     this.selectHandler(e);
+    this.autoHide();
     this.requestUpdate();
   }
 
@@ -826,19 +892,31 @@ export default class OAuth2 extends AuthUiBase {
     } = this;
     return html`
     <form autocomplete="on" class="oauth2-auth">
-      ${this.oauth2GrantTypeTemplate()}
-      ${this.credentialsSourceTemplate()}        
-      ${this.clientIdTemplate()}
-      ${this.clientSecretTemplate()}
-      ${this.oauth2CustomPropertiesTemplate()}
-      ${this.toggleAdvViewSwitchTemplate()}
-      ${this.oauth2AdvancedTemplate()}
+      ${this.formContentTemplate()}
     </form>
     ${this.oauth2RedirectTemplate()}
     ${accessToken ? this.oauth2TokenTemplate() : this.oath2AuthorizeTemplate()}
     ${lastErrorMessage ? html`<p class="error-message">⚠ ${lastErrorMessage}</p>` : ''}
     <clipboard-copy></clipboard-copy>
     `;
+  }
+
+  /**
+   * @return {(TemplateResult|string)[]} The template for the <form> content.
+   */
+  formContentTemplate() {
+    const result = [
+      this.oauth2GrantTypeTemplate(),
+      this.credentialsSourceTemplate(),
+      this.clientIdTemplate(),
+      this.clientSecretTemplate(),
+      this.assertionTemplate(),
+      this.deviceCodeTemplate(),
+      this.oauth2CustomPropertiesTemplate(),
+      this.toggleAdvViewSwitchTemplate(),
+      this.oauth2AdvancedTemplate(),
+    ];
+    return result;
   }
 
   /**
@@ -873,7 +951,7 @@ export default class OAuth2 extends AuthUiBase {
       .compatibility="${anypoint}"
       .disabled="${disabled||readOnly}"
     >
-      <label slot="label">Response type</label>
+      <label slot="label">Grant type</label>
       <anypoint-listbox
         slot="dropdown-content"
         .selected="${grantType}"
@@ -939,14 +1017,16 @@ export default class OAuth2 extends AuthUiBase {
    * @returns {TemplateResult|string} The template for the OAuth 2 client id input.
    */
   clientIdTemplate() {
-    const ctx = this;
+    if (!this.hasClientId) {
+      return '';
+    }
     const { clientId, outlined, anypoint, readOnly, credentialsDisabled, clientIdRequired } = this;
     const sourceSelected = this.isSourceSelected();
     return passwordTemplate(
       'clientId',
       clientId,
       'Client id',
-      ctx.changeHandler,
+      this.changeHandler,
       {
         outlined,
         compatibility: anypoint,
@@ -966,11 +1046,11 @@ export default class OAuth2 extends AuthUiBase {
    * @returns {TemplateResult|string} The template for the OAuth 2 client secret input.
    */
   clientSecretTemplate() {
-    const { oauth2ClientSecretRendered } = this;
-    if (!oauth2ClientSecretRendered) {
+    const { hasClientSecret } = this;
+    if (!hasClientSecret) {
       return '';
     }
-    const { clientSecret, outlined, anypoint, readOnly, credentialsDisabled, oauth2ClientSecretRequired } = this;
+    const { clientSecret, outlined, anypoint, readOnly, credentialsDisabled, clientSecretRequired } = this;
     const ctx = this;
     const sourceSelected = this.isSourceSelected();
     return passwordTemplate(
@@ -983,9 +1063,12 @@ export default class OAuth2 extends AuthUiBase {
         compatibility: anypoint,
         readOnly,
         disabled: sourceSelected ? credentialsDisabled : true,
-        required: oauth2ClientSecretRequired,
+        required: clientSecretRequired,
         autoValidate: true,
         invalidLabel: 'Client secret is required for this response type',
+        infoLabel: clientSecretRequired
+          ? undefined
+          : 'Client secret is optional for this response type',
       }
     );
   }
@@ -1043,7 +1126,7 @@ export default class OAuth2 extends AuthUiBase {
     if (!hasRedirectUri) {
       return '';
     }
-    const editing = this.allowRedirectUriChange && this._editingRedirectUri;
+    const editing = this.allowRedirectUriChange && this.editingRedirectUri;
     return html`
     <div class="subtitle">Redirect URI</div>
     <section>
@@ -1101,7 +1184,7 @@ export default class OAuth2 extends AuthUiBase {
    * @returns {TemplateResult|string} The template for the authorization URI input
    */
   authorizationUriTemplate(urlType) {
-    if (!this.oauth2AuthorizationUriRendered) {
+    if (!this.authorizationUriRendered) {
       return '';
     }
     const { readOnly, authorizationUri, anypoint, outlined, disabled, isCustomGrantType } = this;
@@ -1128,7 +1211,7 @@ export default class OAuth2 extends AuthUiBase {
    * @returns {TemplateResult|string} The template for the access token URI input
    */
   accessTokenUriTemplate(urlType) {
-    if (!this.oauth2AccessTokenUriRendered) {
+    if (!this.accessTokenUriRendered) {
       return '';
     }
     const { readOnly, accessTokenUri, anypoint, outlined, disabled, isCustomGrantType } = this;
@@ -1154,7 +1237,7 @@ export default class OAuth2 extends AuthUiBase {
    * @returns {TemplateResult|string} The template for the user name input
    */
   usernameTemplate() {
-    if (!this.oauth2PasswordRendered) {
+    if (!this.passwordRendered) {
       return '';
     }
     const { readOnly, username, anypoint, outlined, disabled, isCustomGrantType } = this;
@@ -1179,7 +1262,7 @@ export default class OAuth2 extends AuthUiBase {
    * @returns {TemplateResult|string} The template for the user password input
    */
   passwordTemplateLocal() {
-    if (!this.oauth2PasswordRendered) {
+    if (!this.passwordRendered) {
       return '';
     }
     const { readOnly, password, anypoint, outlined, disabled, isCustomGrantType } = this;
@@ -1236,7 +1319,7 @@ export default class OAuth2 extends AuthUiBase {
    */
   paramsLocationTemplate() {
     const { grantType } = this;
-    if (grantType !== 'client_credentials') {
+    if (grantType !== KnownGrants.clientCredentials) {
       return '';
     }
     const { ccDeliveryMethod, outlined, anypoint, disabled, readOnly } = this;
@@ -1270,7 +1353,7 @@ export default class OAuth2 extends AuthUiBase {
    */
   pkceTemplate() {
     const { grantType, noPkce, pkce } = this;
-    if (noPkce || grantType !== 'authorization_code') {
+    if (noPkce || grantType !== KnownGrants.code) {
       return '';
     }
     return html`
@@ -1340,5 +1423,55 @@ export default class OAuth2 extends AuthUiBase {
       <arc-icon icon="edit"></arc-icon>
     </anypoint-icon-button>
     `;
+  }
+
+  /**
+   * @return {TemplateResult|string} The template for the assertion (JWT) input, when needed.
+   */
+  assertionTemplate() {
+    if (this.grantType !== KnownGrants.jwtBearer) {
+      return '';
+    }
+    const { readOnly, assertion, anypoint, outlined, disabled } = this;
+    return inputTemplate(
+      'assertion',
+      assertion,
+      'Assertion (JWT)',
+      this.changeHandler,
+      {
+        outlined,
+        compatibility: anypoint,
+        readOnly,
+        disabled,
+        required: true,
+        autoValidate: true,
+        invalidLabel: 'Assertion is required for this response type',
+      }
+    );
+  }
+
+  /**
+   * @return {TemplateResult|string} The template for the device code input, when needed.
+   */
+  deviceCodeTemplate() {
+    if (this.grantType !== KnownGrants.deviceCode) {
+      return '';
+    }
+    const { readOnly, deviceCode, anypoint, outlined, disabled } = this;
+    return inputTemplate(
+      'deviceCode',
+      deviceCode,
+      'Device code',
+      this.changeHandler,
+      {
+        outlined,
+        compatibility: anypoint,
+        readOnly,
+        disabled,
+        required: true,
+        autoValidate: true,
+        invalidLabel: 'Device code is required for this response type',
+      }
+    );
   }
 }

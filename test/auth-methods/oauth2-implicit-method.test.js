@@ -369,11 +369,11 @@ describe('OAuth 2, implicit method', () => {
       assert.isTrue(handler.called);
     });
 
-    it('sets #authorizing flag', async () => {
+    it('sets #authorizing flag', () => {
       mockTokenRequest();
       const button = /** @type HTMLElement */ (element.shadowRoot.querySelector('.auth-button'));
       button.click();
-      await nextFrame();
+      // await nextFrame();
       assert.isTrue(element.authorizing);
     });
 
@@ -602,7 +602,7 @@ describe('OAuth 2, implicit method', () => {
       const node = /** @type HTMLElement */ (element.shadowRoot.querySelector('.edit-rdr-uri'));
       node.click();
       const f = /** @type OAuth2 */ (element[factory]);
-      assert.isTrue(f._editingRedirectUri);
+      assert.isTrue(f.editingRedirectUri);
       await nextFrame();
     });
 
@@ -654,7 +654,7 @@ describe('OAuth 2, implicit method', () => {
       await nextFrame();
       assert.equal(element.redirectUri, redirectUri, 'has the unchanged redirect URI');
       const f = /** @type OAuth2 */ (element[factory]);
-      assert.isFalse(f._editingRedirectUri, 'the edit flag is reset');
+      assert.isFalse(f.editingRedirectUri, 'the edit flag is reset');
       assert.notOk(element.shadowRoot.querySelector('.redirect-input'), 'does not render the input');
     });
 

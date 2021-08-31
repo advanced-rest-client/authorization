@@ -211,3 +211,36 @@ export function readUrlValue(url, baseUri) {
   }
   return url;
 }
+
+/**
+ * Generates cryptographically significant random string.
+ * @param {number=} [size=20] The size of the generated nonce.
+ * @returns {string} A nonce (number used once).
+ */
+export function nonceGenerator(size=20) {
+  const validChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let array = new Uint8Array(size);
+  window.crypto.getRandomValues(array);
+  array = array.map(x => validChars.charCodeAt(x % validChars.length));
+  return String.fromCharCode.apply(null, array);
+}
+
+/**
+ * @param {Element} node
+ */
+export function selectNode(node) {
+  const { body } = document;
+  // @ts-ignore
+  if (body.createTextRange) {
+    // @ts-ignore
+    const range = body.createTextRange();
+    range.moveToElementText(node);
+    range.select();
+  } else if (window.getSelection) {
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNode(node);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+};
