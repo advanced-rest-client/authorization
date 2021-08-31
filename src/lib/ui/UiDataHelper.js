@@ -150,7 +150,7 @@ export class UiDataHelper {
   static setupOidc(element, init) {
     const i = new OpenID(init);
     this.setOAuth2Values(i, element);
-    i.issuerUrl = element.issuerUrl;
+    i.issuerUri = element.issuerUri;
     return i;
   }
 
@@ -261,6 +261,6 @@ export class UiDataHelper {
    */
   static populateOpenId(element, ui) {
     this.populateOAuth2(element, ui);
-    element.issuerUrl = ui.issuerUrl;
+    element.issuerUri = ui.issuerUri;
   }
 }

@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import { html } from "lit-html";
-import { AuthorizationEvents } from "@advanced-rest-client/arc-events";
+import { AuthorizationEvents, TransportEvents,  } from "@advanced-rest-client/arc-events";
 import '@github/time-elements';
 import OAuth2 from './OAuth2.js';
 import { inputTemplate } from '../../CommonTemplates.js';
@@ -52,6 +52,17 @@ export const defaultGrantTypes = [
 
 export default class OpenID extends OAuth2 {
   /**
+   * @returns {boolean} True when the current `grantType` can support redirect URI.
+   */
+  get hasRedirectUri() {
+    const { grantType, discovered } = this;
+    if (!discovered) {
+      return false;
+    }
+    return [KnownGrants.implicit, KnownGrants.code].includes(grantType);
+  }
+
+  /**
    * @param {AuthUiInit} init
    */
   constructor(init) {
@@ -59,7 +70,7 @@ export default class OpenID extends OAuth2 {
     /** @type boolean */
     this.discovered = false;
     /** @type string */
-    this.issuerUrl = undefined;
+    this.issuerUri = undefined;
     /** @type {(OidcTokenInfo | OidcTokenError)[]} */
     this.tokens = undefined;
     /** @type number */
@@ -104,9 +115,7 @@ export default class OpenID extends OAuth2 {
   }
 
   async authorize() {
-    if (this.lastErrorMessage) {
-      this.lastErrorMessage = undefined;
-    }
+    this.lastErrorMessage = undefined;
     const validationResult = this.target.validate();
     if (!validationResult) {
       return null;
@@ -121,26 +130,26 @@ export default class OpenID extends OAuth2 {
     try {
       const tokens = await AuthorizationEvents.Oidc.authorize(this.target, detail);
       this.authorizing = false;
-      this.requestUpdate();
       this.notifyChange();
+      this.requestUpdate();
       if (!Array.isArray(tokens) || !tokens.length) {
         return null;
       }
       this.tokens = tokens;
       this.accessToken = undefined;
       this.selectedToken = 0;
-      this.requestUpdate();
       this.notifyChange();
+      await this.requestUpdate();
     } catch (e) {
       const { message = 'Unknown error' } = e;
       this.lastErrorMessage = message;
       this.authorizing = false;
-      this.requestUpdate();
       this.notifyChange();
+      await this.requestUpdate();
       throw e;
     }
 
-    this.requestUpdate();
+    await this.requestUpdate();
     return null;
   }
 
@@ -149,14 +158,14 @@ export default class OpenID extends OAuth2 {
    */
   _issuerUriHandler(e) {
     const input = /** @type HTMLInputElement */ (e.target);
-    this.issuerUrl = input.value;
+    this.issuerUri = input.value;
     this.notifyChange();
     this.discover();
   }
 
   _issuerReadHandler() {
-    const { issuerUrl } = this;
-    if (!issuerUrl) {
+    const { issuerUri } = this;
+    if (!issuerUri) {
       this.lastErrorMessage = 'Set the issuer URI first.';
       this.requestUpdate();
       return;
@@ -177,29 +186,95 @@ export default class OpenID extends OAuth2 {
    * Downloads the OIDC info and pre-populates the form inputs.
    */
   async discover() {
-    const { issuerUrl } = this;
-    const oidcUrl = this.buildIssuerUrl(issuerUrl);
-    if (discoveryCache.has(oidcUrl)) {
-      const info = discoveryCache.get(oidcUrl);
-      this.propagateOidc(info);
-      this.discovered = true;
-      this.notifyChange();
-      return;
+    const { issuerUri } = this;
+    if (!issuerUri) {
+      const message = 'Issuer URI is not set.';
+      this.lastErrorMessage = message;
+      this.discovered = false;
+      await this.requestUpdate();
+      throw new Error(message);
     }
     this.lastErrorMessage = undefined;
     this.requestUpdate();
-    try {
-      const rsp = await fetch(oidcUrl);
-      const info = await rsp.json();
-      discoveryCache.set(oidcUrl, info);
+    let info;
+    const oidcUrl = this.buildIssuerUrl(issuerUri);
+    if (discoveryCache.has(oidcUrl)) {
+      info = discoveryCache.get(oidcUrl);
+    } else {
+      try {
+        info = await this.transportDiscovery(oidcUrl);
+        discoveryCache.set(oidcUrl, info);
+      } catch (e) {
+        this.lastErrorMessage = `Unable to read the discovery information.`;
+      }
+    }
+    if (info) {
       this.propagateOidc(info);
       this.discovered = true;
       this.notifyChange();
-    } catch (e) {
-      this.lastErrorMessage = `Unable to read the discovery information.`;
+    } else {
       this.discovered = false;
     }
-    this.requestUpdate();
+    await this.requestUpdate();
+  }
+
+  /**
+   * Requests the data from the discovery endpoint.
+   * First it dispatched ARC's HTTP transport event to avoid CORS issues.
+   * When this fails then it tried native `fetch` API.
+   * 
+   * @param {string} url
+   * @returns {Promise<any>} 
+   */
+  async transportDiscovery(url) {
+    let result;
+    try {
+      result = await this.transportArc(url);
+    } catch (e) {
+      // ...
+    }
+    if (!result) {
+      result = await this.transportNative(url);
+    }
+    return result;
+  }
+
+  /**
+   * Uses the ARC's internal HTTP request backend service to request the discovery data
+   * without CORS restrictions. This event may not be handled when component is hosted by another application.
+   * 
+   * @param {string} url The URL to request.
+   * @returns {Promise<any>} The processed response as JSON.
+   */
+  async transportArc(url) {
+    const result = await TransportEvents.httpTransport(this.target, {
+      method: 'GET',
+      url,
+    });
+    if (!result) {
+      throw new Error(`The ARC request is not handled`);
+    }
+    let { payload } = result;
+    // @ts-ignore
+    if (typeof payload.buffer === 'object') {
+      // Node.js buffer object.
+      payload = payload.toString('utf8');
+    } else if (typeof payload !== 'string') {
+      payload = payload.toString();
+    }
+    return JSON.parse(payload);
+  }
+
+  /**
+   * Uses the `fetch` API as a fallback to download the discovery info.
+   * This may not work due to CORS and this is secondary to ARC's backend transport.
+   * 
+   * @param {string} url The URL to request.
+   * @returns {Promise<any>} The processed response as JSON.
+   */
+  async transportNative(url) {
+    const rsp = await fetch(url);
+    return rsp.json();
   }
 
   /**
@@ -325,6 +400,9 @@ export default class OpenID extends OAuth2 {
    * @param {OidcTokenInfo} token
    */
   readTokenValue(token) {
+    if (!token) {
+      return '';
+    }
     const { responseType } = token;
     switch (responseType) {
       case 'token': return token.accessToken;
@@ -354,10 +432,10 @@ export default class OpenID extends OAuth2 {
   }
 
   issuerInputTemplate() {
-    const { readOnly, issuerUrl, anypoint, outlined, disabled } = this;
+    const { readOnly, issuerUri, anypoint, outlined, disabled } = this;
     const input = inputTemplate(
-      'issuerUrl',
-      issuerUrl,
+      'issuerUri',
+      issuerUri,
       'Issuer URI',
       this._issuerUriHandler,
       {
@@ -379,6 +457,7 @@ export default class OpenID extends OAuth2 {
         ?compatibility="${anypoint}"
         title="Downloads and processes the discovery info"
         @click="${this._issuerReadHandler}"
+        data-type="read-discovery"
       >Read</anypoint-button>
     </div>
     `;
@@ -541,5 +620,23 @@ export default class OpenID extends OAuth2 {
       ${label} <relative-time datetime="${expTime}"></relative-time>
     </div>
     `;
+  }
+
+  /**
+   * @returns {TemplateResult|string} The template for the "authorize" button.
+   */
+  oath2AuthorizeTemplate() {
+    const { authorizing, anypoint, discovered } = this;
+    return html`
+    <div class="authorize-actions">
+      <anypoint-button
+        ?disabled="${authorizing || !discovered}"
+        class="auth-button"
+        ?compatibility="${anypoint}"
+        emphasis="medium"
+        data-type="get-token"
+        @click="${this.authorize}"
+      >Request tokens</anypoint-button>
+    </div>`;
   }
 }

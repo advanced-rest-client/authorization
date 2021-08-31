@@ -467,7 +467,7 @@ export default class AuthorizationMethod extends EventsTargetMixin(LitElement) {
    * The OpenID discovery URI.
    * @attribute
    */
-  issuerUrl: string;
+  issuerUri: string;
   /** 
    * The assertion parameter for the JWT token authorization.
    * 
@@ -537,6 +537,13 @@ export default class AuthorizationMethod extends EventsTargetMixin(LitElement) {
   * @throws {Error} When authorization error.
   */
   authorize(): Promise<any | null>;
+
+  /**
+   * When the type is `open id` it reads the discovery URL data and populates
+   * the UI with them. This is equivalent to clicking on the `read` button
+   * in the OpenID type authorization.
+   */
+  discover(): Promise<void>;
 
   // /**
   //  * Handler for the `oauth1-token-response` custom event.

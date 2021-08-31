@@ -83,6 +83,10 @@ class ComponentDemo extends DemoPage {
       issuerUri,
       issuers,
     } = this;
+    // these cid and cs are only allowed for localhost testing.
+    // Other origins are banned.
+    const cid = '1076318174169-5i48tqquddrk0lv0shbtsaj6kc8c9j5g.apps.googleusercontent.com';
+    const cs = 'SF3kI7tqI_BUdc5ACkJ4vjII';
     const baseUri = oauth2BaseUriEnabled ? 'https://api.domain.com/auth/' : undefined;
     return html`
     <section class="documentation-section">
@@ -99,10 +103,10 @@ class ComponentDemo extends DemoPage {
           type="open id"
           slot="content"
           redirectUri="${oauth2redirect}"
-          clientId="1076318174169-5i48tqquddrk0lv0shbtsaj6kc8c9j5g.apps.googleusercontent.com"
-          clientSecret="SF3kI7tqI_BUdc5ACkJ4vjII"
+          clientId="${cid}"
+          clientSecret="${cs}"
           grantType="authorization_code"
-          issuerUrl="${issuerUri}"
+          issuerUri="${issuerUri}"
           ?allowRedirectUriChange="${allowRedirectUriChange}"
           .credentialsSource="${credentialsSource}"
           .baseUri="${baseUri}"

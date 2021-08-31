@@ -229,7 +229,7 @@ export interface OpenIdProviderMetadata {
   /**
    * Languages and scripts supported for the user interface, represented as a JSON array of BCP47 [RFC5646] language tag values.
    */
-  ui_locales_supported: string[];
+  ui_locales_supported?: string[];
   /**
    * Boolean value specifying whether the OP supports use of the claims parameter, with true indicating support. If omitted, the default value is false.
    */

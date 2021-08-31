@@ -511,7 +511,7 @@ class ComponentDemo extends DemoPage {
           clientId="1076318174169-5i48tqquddrk0lv0shbtsaj6kc8c9j5g.apps.googleusercontent.com"
           clientSecret="SF3kI7tqI_BUdc5ACkJ4vjII"
           grantType="authorization_code"
-          issuerUrl="${issuerUri}"
+          issuerUri="${issuerUri}"
           ?allowRedirectUriChange="${allowRedirectUriChange}"
           .credentialsSource="${credentialsSource}"
           .baseUri="${baseUri}"

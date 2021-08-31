@@ -442,7 +442,7 @@ export default class AuthorizationMethodElement extends EventsTargetMixin(LitEle
       /** 
        * The OpenID discovery URI.
        */
-      issuerUrl: { type: String },
+      issuerUri: { type: String },
       /** 
        * The assertion parameter for the JWT token authorization.
        * 
@@ -619,7 +619,7 @@ export default class AuthorizationMethodElement extends EventsTargetMixin(LitEle
     /** @type any */
     this.requestBody = undefined;
     /** @type string */
-    this.issuerUrl = undefined;
+    this.issuerUri = undefined;
     /** @type {string} */
     this.assertion = undefined;
      /** @type {string} */
@@ -815,6 +815,20 @@ export default class AuthorizationMethodElement extends EventsTargetMixin(LitEle
       throw new Error(`The authorization type is not set.`);
     }
     return this[factory].authorize();
+  }
+
+  /**
+   * When the type is `open id` it reads the discovery URL data and populates
+   * the UI with them. This is equivalent to clicking on the `read` button
+   * in the OpenID type authorization.
+   */
+  async discover() {
+    if (!this[factory]) {
+      throw new Error(`The authorization type is not set.`);
+    }
+    if (normalizeType(this.type) === METHOD_OIDC) {
+      await /** @type OpenID */ (this[factory]).discover();
+    }
   }
 
   /**
