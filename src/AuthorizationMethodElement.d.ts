@@ -2,7 +2,6 @@ import { LitElement, CSSResult, TemplateResult } from 'lit-element';
 import { EventsTargetMixin } from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
 import { Oauth2Credentials, GrantType } from './types';
 import { AllowedScope } from './OAuth2ScopeSelectorElement';
-import AuthUiBase from './lib/ui/AuthUiBase';
 import { OAuth2DeliveryMethod } from '@advanced-rest-client/arc-types/src/authorization/Authorization';
 
 export const typeChangedSymbol: unique symbol;
@@ -11,6 +10,8 @@ export const factory: unique symbol;
 export const renderCallback: unique symbol;
 export const changeCallback: unique symbol;
 export const oauth1tokenResponseHandler: unique symbol;
+export const oauth1ErrorHandler: unique symbol;
+export const propagateChanges: unique symbol;
 
 /**
  * An element that renders various authorization methods.
