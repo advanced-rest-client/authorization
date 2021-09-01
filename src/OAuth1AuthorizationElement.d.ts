@@ -1,8 +1,15 @@
 import {LitElement} from 'lit-element';
 
-export {OAuth1AuthorizationElement};
+declare interface AuthSettings {
+  valid: boolean;
+  type: string;
+  settings: any;
+}
 
-declare class OAuth1AuthorizationElement {
+/**
+ * @deprecated This element is no longer maintained and will be removed
+ */
+export declare class OAuth1AuthorizationElement extends LitElement {
   lastIssuedToken: any;
 
   /**
@@ -26,7 +33,7 @@ declare class OAuth1AuthorizationElement {
   /**
    * The `before-request` handler. Creates an authorization header if needed.
    * Normally `before-request` expects to set a promise on the `detail.promises`
-   * object. But because this taks is sync it skips the promise and manipulate
+   * object. But because this task is sync it skips the promise and manipulate
    * request object directly.
    */
   _handleRequest(e: CustomEvent|null): void;
@@ -68,7 +75,7 @@ declare class OAuth1AuthorizationElement {
    * Performs a request to authorization server.
    *
    * @param settings Oauth1 configuration. See description for more
-   * details or `auth-methods/oauth1.html` element that collectes configuration
+   * details or `auth-methods/oauth1.html` element that collects configuration
    * from the user.
    */
   authorize(settings: object|null): void;
@@ -77,7 +84,7 @@ declare class OAuth1AuthorizationElement {
    * Sets a configuration properties on this element from passed settings.
    *
    * @param params See description for more
-   * details or `auth-methods/oauth1.html` element that collectes configuration
+   * details or `auth-methods/oauth1.html` element that collects configuration
    * from the user.
    */
   _prepareOauth(params: object|null): void;

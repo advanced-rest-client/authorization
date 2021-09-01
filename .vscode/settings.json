@@ -1,10 +1,15 @@
 {
   "cSpell.words": [
+    "OIDC",
     "cnonce",
     "crossorigin",
-    "cryptojslib",
     "invalidchange",
     "jsrsasign",
-    "rollups"
+    "jwks",
+    "openid",
+    "rollups",
+    "tokenproxy",
+    "tokenproxyencode",
+    "userinfo"
   ]
 }

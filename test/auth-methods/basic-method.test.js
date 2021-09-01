@@ -83,7 +83,7 @@ describe('Basic method', () => {
       const input = /** @type HTMLInputElement */ (element.shadowRoot.querySelector(usernameSelector));
       setTimeout(() => {
         input.value = 'test';
-        input.dispatchEvent(new CustomEvent('input'));
+        input.dispatchEvent(new Event('change'));
       });
       const e = await oneEvent(element, 'change');
       assert.ok(e);
@@ -93,7 +93,7 @@ describe('Basic method', () => {
       const input = /** @type HTMLInputElement */ (element.shadowRoot.querySelector(passwordSelector));
       setTimeout(() => {
         input.value = 'test-password';
-        input.dispatchEvent(new CustomEvent('input'));
+        input.dispatchEvent(new Event('change'));
       });
       const e = await oneEvent(element, 'change');
       assert.ok(e);
@@ -116,14 +116,16 @@ describe('Basic method', () => {
       assert.equal(result.password, password);
     });
 
-    it('serialization default username', () => {
+    it('serialization default username', async () => {
       element.username = undefined;
+      await nextFrame();
       const result = element.serialize();
       assert.equal(result.username, '');
     });
 
-    it('serialization default password', () => {
+    it('serialization default password', async () => {
       element.password = undefined;
+      await nextFrame();
       const result = element.serialize();
       assert.equal(result.password, '');
     });

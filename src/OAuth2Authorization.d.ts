@@ -13,13 +13,14 @@ export declare const authorizeImplicitCode: unique symbol;
 export declare const authorizeClientCredentials: unique symbol;
 export declare const authorizePassword: unique symbol;
 export declare const authorizeCustomGrant: unique symbol;
+export declare const authorizeDeviceCode: unique symbol;
+export declare const authorizeJwt: unique symbol;
 export declare const popupValue: unique symbol;
 export declare const popupUnloadHandler: unique symbol;
 export declare const tokenResponse: unique symbol;
 export declare const messageHandler: unique symbol;
 export declare const iframeValue: unique symbol;
 export declare const processPopupRawData: unique symbol;
-export declare const processTokenResponse: unique symbol;
 export declare const handleTokenInfo: unique symbol;
 export declare const computeTokenInfoScopes: unique symbol;
 export declare const computeExpires: unique symbol;
@@ -28,12 +29,12 @@ export declare const frameTimeoutHandler: unique symbol;
 export declare const reportOAuthError: unique symbol;
 export declare const authorizePopup: unique symbol;
 export declare const authorizeTokenNonInteractive: unique symbol;
-export declare const createTokenResponseError: unique symbol;
 export declare const createErrorParams: unique symbol;
 export declare const tokenInfoFromParams: unique symbol;
-export declare const processCodeResponse: unique symbol;
 export declare const handleTokenCodeError: unique symbol;
 export declare const codeVerifierValue: unique symbol;
+
+export declare const grantResponseMapping: Record<string, string>;
 
 /**
  * A library that performs OAuth 2 authorization.
@@ -92,7 +93,7 @@ export class OAuth2Authorization {
    * Performs the authorization.
    * @returns Promise resolved to the token info.
    */
-  authorize(): Promise<Authorization.TokenInfo>;
+  authorize(): Promise<Authorization.TokenInfo|any>;
 
   /**
    * Reports authorization error back to the application.
@@ -118,9 +119,14 @@ export class OAuth2Authorization {
 
   /**
    * Constructs the popup/iframe URL for the `implicit` or `authorization_code` grant types.
-   * @return Full URL for the endpoint.
+   * @returns Full URL for the endpoint.
    */
   constructPopupUrl(): Promise<string>;
+
+  /**
+   * @returns The parameters to build popup URL.
+   */
+  buildPopupUrlParams(): Promise<URL>;
 
   /**
    * Opens a popup to request authorization from the user.
@@ -169,17 +175,23 @@ export class OAuth2Authorization {
   [processPopupRawData](raw: any): void;
 
   /**
+   * @param params The instance of search params with the response from the auth dialog.
+   * @returns true when the params qualify as an authorization popup redirect response.
+   */
+  validateTokenResponse(params: URLSearchParams): boolean;
+
+  /**
    * Processes the response returned by the popup or the iframe.
    * @param oauthParams
    */
-  [processTokenResponse](oauthParams: URLSearchParams): Promise<void>;
+  processTokenResponse(oauthParams: URLSearchParams): Promise<void>;
 
   /**
    * Processes the response returned by the popup or the iframe.
    * @param oauthParams
    * @returns Parameters for the [reportOAuthError]() function
    */
-  [createTokenResponseError](oauthParams: URLSearchParams): string[];
+  createTokenResponseError(oauthParams: URLSearchParams): string[];
 
   /**
    * Creates arguments for the error function from error response
@@ -226,6 +238,34 @@ export class OAuth2Authorization {
    * Exchanges the authorization code for authorization token.
    *
    * @param code Returned code from the authorization endpoint.
+   * @returns The response from the server.
+   */
+  getCodeInfo(code: string): Promise<Record<string, any>>;
+
+  /**
+   * Requests for token from the authorization server for `code`, `password`, `client_credentials` and custom grant types.
+   *
+   * @param url Base URI of the endpoint. Custom properties will be applied to the final URL.
+   * @param body Generated body for given type. Custom properties will be applied to the final body.
+   * @param optHeaders Optional headers to add to the request. Applied after custom data.
+   * @returns Promise resolved to the response string.
+   */
+  requestTokenInfo(url: string, body: string, optHeaders?: Record<string, string>): Promise<Record<string, any>>;
+
+  /**
+   * Processes body of the code exchange to a map of key value pairs.
+   */
+  processCodeResponse(body: string, mime: string): Record<string, any>;
+  /**
+   * @param info
+   * @returns The token info when the request was a success.
+   */
+  mapCodeResponse(info: Record<string, any>): Authorization.TokenInfo;
+
+  /**
+   * Exchanges the authorization code for authorization token.
+   *
+   * @param code Returned code from the authorization endpoint.
    * @returns The token info when the request was a success.
    */
   exchangeCode(code: string): Promise<Authorization.TokenInfo>;
@@ -233,28 +273,9 @@ export class OAuth2Authorization {
   /**
    * Returns a body value for the code exchange request.
    * @param code Authorization code value returned by the authorization server.
-   * @return Request body.
+   * @returns Request body.
    */
   getCodeRequestBody(code: string): string;
-
-  /**
-   * Requests for token from the authorization server for `code`, `password`, `client_credentials` and custom grant types.
-   *
-   * @param url Base URI of the endpoint. Custom properties will be applied to the final URL.
-   * @param body Generated body for given type. Custom properties will be applied to the final body.
-   * @returns Promise resolved to the response string.
-   */
-  requestToken(url: string, body: string): Promise<Authorization.TokenInfo>;
-
-  /**
-   * Processes code response body and produces map of values.
-   *
-   * @param body Body received in the response.
-   * @param mime Response content type.
-   * @return Response as an object.
-   * @throws {Error} Exception when the body is invalid.
-   */
-  [processCodeResponse](body: string, mime: string): Authorization.TokenInfo;
 
   /**
    * A handler for the error that happened during code exchange.
@@ -266,14 +287,14 @@ export class OAuth2Authorization {
    * 
    * This method resolves the main promise set by the `authorize()` function.
    *
-   * @return Promise resolved to a token info object.
+   * @returns Promise resolved to a token info object.
    */
   [authorizeClientCredentials](): Promise<void>;
 
   /**
    * Generates a payload message for client credentials.
    *
-   * @return Message body as defined in OAuth2 spec.
+   * @returns Message body as defined in OAuth2 spec.
    */
   getClientCredentialsBody(): string;
 
@@ -298,7 +319,7 @@ export class OAuth2Authorization {
   /**
    * Generates a payload message for password authorization.
    *
-   * @return Message body as defined in OAuth2 spec.
+   * @returns Message body as defined in OAuth2 spec.
    */
   getPasswordBody(): string;
 
@@ -315,7 +336,35 @@ export class OAuth2Authorization {
   /**
    * Generates a payload message for the custom grant.
    *
-   * @return {string} Message body as defined in OAuth2 spec.
+   * @returns {string} Message body as defined in OAuth2 spec.
    */
   getCustomGrantBody(): string;
+
+  /**
+   * Requests a token for the `urn:ietf:params:oauth:grant-type:device_code` response type.
+   *
+   * @return Promise resolved to a token info object.
+   */
+  [authorizeDeviceCode](): Promise<void>;
+
+  /**
+   * Generates a payload message for the `urn:ietf:params:oauth:grant-type:device_code` authorization.
+   *
+   * @return Message body as defined in OAuth2 spec.
+   */
+  getDeviceCodeBody(): string;
+
+  /**
+   * Requests a token for the `urn:ietf:params:oauth:grant-type:jwt-bearer` response type.
+   *
+   * @returns Promise resolved to a token info object.
+   */
+  [authorizeJwt](): Promise<void>;
+
+  /**
+   * Generates a payload message for the `urn:ietf:params:oauth:grant-type:jwt-bearer` authorization.
+   *
+   * @return Message body as defined in OAuth2 spec.
+   */
+  getJwtBody(): string;
 }

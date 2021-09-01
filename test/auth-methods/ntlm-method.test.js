@@ -103,7 +103,7 @@ describe('NTLM method', () => {
       const input = /** @type AnypointInput */ (element.shadowRoot.querySelector(usernameSelector));
       setTimeout(() => {
         input.value = 'test';
-        input.dispatchEvent(new CustomEvent('input'));
+        input.dispatchEvent(new CustomEvent('change'));
       });
       const e = await oneEvent(element, 'change');
       assert.ok(e);
@@ -113,7 +113,7 @@ describe('NTLM method', () => {
       const input = /** @type AnypointInput */ (element.shadowRoot.querySelector(passwordSelector));
       setTimeout(() => {
         input.value = 'test-password';
-        input.dispatchEvent(new CustomEvent('input'));
+        input.dispatchEvent(new CustomEvent('change'));
       });
       const e = await oneEvent(element, 'change');
       assert.ok(e);
@@ -123,7 +123,7 @@ describe('NTLM method', () => {
       const input = /** @type AnypointInput */ (element.shadowRoot.querySelector(domainSelector));
       setTimeout(() => {
         input.value = 'test-domain';
-        input.dispatchEvent(new CustomEvent('input'));
+        input.dispatchEvent(new CustomEvent('change'));
       });
       const e = await oneEvent(element, 'change');
       assert.ok(e);
@@ -151,20 +151,23 @@ describe('NTLM method', () => {
       assert.equal(result.domain, domain);
     });
 
-    it('serialization default username', () => {
+    it('serialization default username', async () => {
       element.username = undefined;
+      await nextFrame();
       const result = element.serialize();
       assert.equal(result.username, '');
     });
 
-    it('serialization default password', () => {
+    it('serialization default password', async () => {
       element.password = undefined;
+      await nextFrame();
       const result = element.serialize();
       assert.equal(result.password, '');
     });
 
-    it('serialization default domain', () => {
+    it('serialization default domain', async () => {
       element.domain = undefined;
+      await nextFrame();
       const result = element.serialize();
       assert.equal(result.domain, '');
     });

@@ -1,14 +1,24 @@
 import '@anypoint-web-components/anypoint-input/anypoint-input.js';
 import '@anypoint-web-components/anypoint-button/anypoint-button.js';
 import '@anypoint-web-components/anypoint-input/anypoint-masked-input.js';
+import { v4 } from '@advanced-rest-client/uuid-generator';
 
 function setupFormAction() {
   const u = new URL(window.location.href)
   const state = u.searchParams.get('state');
   const redirectUri = decodeURIComponent(u.searchParams.get('redirect_uri'));
-  let formUrl = redirectUri;
-  formUrl += `#access_token=MyMzFjNTk2NTk4ZTYyZGI3`;
-  formUrl += `&state=${state}`;
+  const type = u.searchParams.get('response_type');
+  const codeParam = type === 'code' ? 'code' : 'access_token';
+  const params = new URLSearchParams();
+  params.set(codeParam, v4());
+  params.set('state', state);
+  params.set('expires_in', '3600');
+  params.set('scope', 'dummy');
+  if (type !== 'code') {
+    params.set('token_type', 'bearer');
+    params.set('refresh_token', v4());
+  }
+  const formUrl = `${redirectUri}#${params.toString()}`;
   const form = document.querySelector('form');
   form.action = formUrl;
 }

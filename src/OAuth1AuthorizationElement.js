@@ -14,13 +14,9 @@
 import { LitElement } from 'lit-element';
 import { EventsTargetMixin } from '@advanced-rest-client/events-target-mixin';
 import { HeadersParser } from '@advanced-rest-client/arc-headers';
+import hmacSha1 from './lib/3rd-party/HMAC-SHA1.js';
 
-/**
- * @typedef AuthSettings
- * @property {Boolean} valid
- * @property {String} type
- * @property {Object} settings
- */
+/** @typedef {import('./OAuth1AuthorizationElement').AuthSettings} AuthSettings */
 
 if (window) {
   // @ts-ignore
@@ -85,21 +81,16 @@ distributed under BSD license.
 
 ## Required dependencies
 
-The `CryptoJS` and `RSAKey` libraries are not included into the element sources.
+The `RSAKey` libraries are not included into the element sources.
 If your project do not use this libraries already include it into your project.
 
 This component also uses `URLSearchParams` so provide a polyfill for `URL` and `URLSearchParams`.
 
 ```
-npm i cryptojslib jsrsasign
+npm i jsrsasign
 ```
 
 ```html
-<script src="../cryptojslib/components/core.js"></script>
-<script src="../cryptojslib/rollups/sha1.js"></script>
-<script src="../cryptojslib/components/enc-base64-min.js"></script>
-<script src="../cryptojslib/rollups/md5.js"></script>
-<script src="../cryptojslib/rollups/hmac-sha1.js"></script>
 <script src="../jsrsasign/lib/jsrsasign-rsa-min.js"></script>
 ```
 @deprecated This element is no longer maintained and will be removed
@@ -853,15 +844,11 @@ export class OAuth1AuthorizationElement extends EventsTargetMixin(LitElement) {
    * @return {String} Computed OAuth1 signature.
    */
   _createSignatureHamacSha1(baseText, key) {
-    /* global CryptoJS */
-    // @ts-ignore
-    const hash = CryptoJS.HmacSHA1(baseText, key);
-    // @ts-ignore
-    return hash.toString(CryptoJS.enc.Base64);
+    return hmacSha1(key, baseText);
   }
 
   /**
-   * Returns a list of characters that can be used to buid nonce.
+   * Returns a list of characters that can be used to build nonce.
    *
    * @return {Array<String>}
    */

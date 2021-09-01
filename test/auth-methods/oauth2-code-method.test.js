@@ -196,11 +196,7 @@ describe('OAuth 2, authorization code method', () => {
         const input = /** @type AnypointInput */ (element.shadowRoot.querySelector(`*[name="${name}"]`));
         setTimeout(() => {
           input.value = value;
-          if (name === 'scopes') {
-            input.dispatchEvent(new CustomEvent('change'));
-          } else {
-            input.dispatchEvent(new CustomEvent('input'));
-          }
+          input.dispatchEvent(new CustomEvent('change'));
         });
         const e = await oneEvent(element, 'change');
         assert.ok(e);

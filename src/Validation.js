@@ -7,6 +7,7 @@ import {
   METHOD_OAUTH1,
   METHOD_OAUTH2,
 } from './Utils.js';
+import * as KnownGrants from './lib/KnownGrants.js';
 
 /** @typedef {import('./AuthorizationMethodElement').default} AuthorizationMethod */
 /** @typedef {import('@anypoint-web-components/anypoint-input').AnypointInput} AnypointInput */
@@ -116,6 +117,26 @@ export const validateOauth2AuthPassword = (element) => {
 };
 
 /**
+ * Validates OAuth2 authorization form with password grant type.
+ * @param {AuthorizationMethod} element An instance of the element.
+ * @return {Boolean} Validation result
+ */
+export const validateOauth2JwtBearer = (element) => {
+  const { accessTokenUri, assertion } = element;
+  return !!accessTokenUri && !!assertion;
+};
+
+/**
+ * Validates OAuth2 authorization form with password grant type.
+ * @param {AuthorizationMethod} element An instance of the element.
+ * @return {Boolean} Validation result
+ */
+export const validateOauth2DeviceCode = (element) => {
+  const { accessTokenUri, deviceCode } = element;
+  return !!accessTokenUri && !!deviceCode;
+};
+
+/**
  * Validates OAuth2 authorization form with custom grant type.
  * @param {AuthorizationMethod} element An instance of the element.
  * @return {Boolean} Validation result
@@ -159,16 +180,19 @@ export const validateOauth2Auth = (element) => {
   if (form && form.elements.length) {
     return validateOauth2form(form);
   }
-  // Array.from($0.elements).forEach((node) => node.validate());
   switch (grantType) {
-    case 'implicit':
+    case KnownGrants.implicit:
       return validateOauth2AuthImplicit(element);
-    case 'authorization_code':
+    case KnownGrants.code:
       return validateOauth2AuthCode(element);
-    case 'client_credentials':
+    case KnownGrants.clientCredentials:
       return validateOauth2AuthCredentials(element);
-    case 'password':
+    case KnownGrants.password:
       return validateOauth2AuthPassword(element);
+    case KnownGrants.jwtBearer:
+      return validateOauth2JwtBearer(element);
+    case KnownGrants.deviceCode:
+      return validateOauth2DeviceCode(element);
     default:
       return validateOauth2AuthCustom(element);
   }

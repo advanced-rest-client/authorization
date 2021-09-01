@@ -3,8 +3,10 @@ import { html, fixture, assert, oneEvent, nextFrame } from '@open-wc/testing';
 import { validateInput } from './TestUtils.js';
 import { METHOD_DIGEST } from '../../index.js';
 import '../../authorization-method.js';
+import { factory } from '../../src/AuthorizationMethodElement.js';
 
 /** @typedef {import('../../src/AuthorizationMethodElement').default} AuthorizationMethod */
+/** @typedef {import('../../src/lib/ui/Digest').default} Digest */
 /** @typedef {import('@anypoint-web-components/anypoint-input').AnypointInput} AnypointInput */
 
 describe('Digest method', () => {
@@ -190,7 +192,7 @@ describe('Digest method', () => {
         const input = /** @type AnypointInput */ (element.shadowRoot.querySelector(`*[name="${name}"]`));
         setTimeout(() => {
           input.value = `test-${name}`;
-          input.dispatchEvent(new CustomEvent('input'));
+          input.dispatchEvent(new CustomEvent('change'));
         });
         const e = await oneEvent(element, 'change');
         assert.ok(e);
@@ -201,7 +203,7 @@ describe('Digest method', () => {
       const input = /** @type AnypointInput */ (element.shadowRoot.querySelector(ncSelector));
       setTimeout(() => {
         input.value = 123;
-        input.dispatchEvent(new CustomEvent('input'));
+        input.dispatchEvent(new CustomEvent('change'));
       });
       const e = await oneEvent(element, 'change');
       assert.ok(e);
@@ -222,14 +224,6 @@ describe('Digest method', () => {
       const input = dropdown.querySelector('anypoint-listbox');
       setTimeout(() => {
         input.selected = 'auth-init';
-      });
-      const e = await oneEvent(element, 'change');
-      assert.ok(e);
-    });
-
-    it('notifies when requestUrl changes', async () => {
-      setTimeout(() => {
-        element.requestUrl = 'https://other.org/path';
       });
       const e = await oneEvent(element, 'change');
       assert.ok(e);
@@ -281,14 +275,16 @@ describe('Digest method', () => {
       assert.equal(result.uri, '/path/to/resource');
     });
 
-    it('serialization default username', () => {
+    it('serialization default username', async () => {
       element.username = undefined;
+      await nextFrame();
       const result = element.serialize();
       assert.equal(result.username, '');
     });
 
-    it('serialization default password', () => {
+    it('serialization default password', async () => {
       element.password = undefined;
+      await nextFrame();
       const result = element.serialize();
       assert.equal(result.password, '');
     });
@@ -357,7 +353,8 @@ describe('Digest method', () => {
     it('restores uri/_requestUri', () => {
       restoreMap.uri = 'https://other.com/path';
       element.restore(restoreMap);
-      assert.equal(element._requestUri, restoreMap.uri);
+      const f = /** @type Digest */ (element[factory]);
+      assert.equal(f._requestUri, restoreMap.uri);
     });
   });
 
@@ -421,26 +418,30 @@ describe('Digest method', () => {
       assert.equal(result.response, 'dcef90af84c62601cd22e25cb81f7d81');
     });
 
-    it('generates response with qop = auth-int', () => {
+    it('generates response with qop = auth-int', async () => {
       element.qop = 'auth-int';
+      await nextFrame();
       const result = element.serialize();
       assert.equal(result.response, '041c8669c69b6f4821359ff1d965e0e5');
     });
 
-    it('generates response with qop = auth', () => {
+    it('generates response with qop = auth', async () => {
       element.qop = 'auth';
+      await nextFrame();
       const result = element.serialize();
       assert.equal(result.response, '455fa93bcf1163f0f0e3cc4b3eeb183f');
     });
 
-    it('generates response with algorithm MD5-sess', () => {
+    it('generates response with algorithm MD5-sess', async () => {
       element.algorithm = 'MD5-sess';
+      await nextFrame();
       const result = element.serialize();
       assert.equal(result.response, 'dcef90af84c62601cd22e25cb81f7d81');
     });
 
-    it('generates response with algorithm MD5', () => {
+    it('generates response with algorithm MD5', async () => {
       element.algorithm = 'MD5';
+      await nextFrame();
       const result = element.serialize();
       assert.equal(result.response, '053c0c987d162c62d7a57395c20c0f3b');
     });

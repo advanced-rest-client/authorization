@@ -1,21 +1,16 @@
 import { LitElement, CSSResult, TemplateResult } from 'lit-element';
-import {EventsTargetMixin} from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
-import {BasicMethodMixin} from './BasicMethodMixin';
-import {NtlmMethodMixin} from './NtlmMethodMixin';
-import {DigestMethodMixin} from './DigestMethodMixin';
-import {Oauth1MethodMixin} from './Oauth1MethodMixin';
-import {Oauth2MethodMixin} from './Oauth2MethodMixin';
-import {BearerMethodMixin} from './BearerMethodMixin';
-import { Oauth2Credentials } from './types';
+import { EventsTargetMixin } from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
+import { Oauth2Credentials, GrantType } from './types';
+import { AllowedScope } from './OAuth2ScopeSelectorElement';
+import AuthUiBase from './lib/ui/AuthUiBase';
+import { OAuth2DeliveryMethod } from '@advanced-rest-client/arc-types/src/authorization/Authorization';
 
-export const typeChangedSymbol: symbol;
-
-export default interface AuthorizationMethod extends Oauth2MethodMixin, Oauth1MethodMixin, DigestMethodMixin, BearerMethodMixin, BasicMethodMixin, NtlmMethodMixin, EventsTargetMixin, LitElement {
-  nonce: string;
-
-  new (): AuthorizationMethod;
-  prototype: AuthorizationMethod;
-}
+export const typeChangedSymbol: unique symbol;
+export const typeValue: unique symbol;
+export const factory: unique symbol;
+export const renderCallback: unique symbol;
+export const changeCallback: unique symbol;
+export const oauth1tokenResponseHandler: unique symbol;
 
 /**
  * An element that renders various authorization methods.
@@ -28,7 +23,7 @@ export default interface AuthorizationMethod extends Oauth2MethodMixin, Oauth1Me
  * 
  * @fires change When authorization state change
  */
-export default class AuthorizationMethod {
+export default class AuthorizationMethod extends EventsTargetMixin(LitElement) {
   get styles(): CSSResult;
 
   /**
@@ -51,6 +46,7 @@ export default class AuthorizationMethod {
    * @attribute
    */
   type: string;
+  // [typeValue]: string;
   /**
    * When set the editor is in read only mode.
    * @attribute
@@ -71,49 +67,82 @@ export default class AuthorizationMethod {
    * @attribute
    */
   outlined: boolean;
-  /**
-   * Renders mobile friendly view.
-   * @attribute
-   */
-  narrow: boolean;
 
   /**
    * Used in the following types:
    * - OAuth 1
    * - OAuth 2
    */
-  readonly authorizing: boolean|null;
-  _authorizing: boolean|null;
+  get authorizing(): boolean | undefined;
+  _authorizing: boolean | undefined;
   /**
+   * Current username.
+   *
+   * Used in the following types:
+   * - Basic
+   * - NTLM
+   * - Digest
+   * - OAuth 2
    * @attribute
    */
   username: string;
   /**
+   * Current password.
+   *
+   * Used in the following types:
+   * - Basic
+   * - NTLM
+   * - Digest
+   * - OAuth 2
    * @attribute
    */
   password: string;
   /**
+   * Authorization redirect URI
+   *
+   * Used in the following types:
+   * - OAuth 1
+   * - OAuth 2
    * @attribute
    */
   redirectUri: string;
   /**
+   * Endpoint to authorize the token (OAuth 1) or exchange code for token (OAuth 2).
+   *
+   * Used in the following types:
+   * - OAuth 1
+   * - OAuth 2
    * @attribute
    */
   accessTokenUri: string;
   /**
+   * An URI of authentication endpoint where the user should be redirected
+   * to authorize the app. This endpoint initialized OAuth flow.
+   *
+   * Used in the following types:
+   * - OAuth 1
+   * - OAuth 2
    * @attribute
    */
   authorizationUri: string;
   /**
+   * Oauth 1 or Bearer token (from the oauth console or received from auth server)
+   *
+   * Used in the following types:
+   * - OAuth 1
+   * - Bearer
+   * 
    * @attribute
    */
   token: string;
-  onchange: EventListener|null;
   /**
-   * @attribute List of credentials source
+   * Authorization domain
+   *
+   * Used in the following types:
+   * - NTLM
+   * @attribute
    */
-  credentialsSource: Array<Oauth2Credentials>;
-
+  domain?: string;
   /**
    * Server issued realm for Digest authorization.
    *
@@ -216,10 +245,7 @@ export default class AuthorizationMethod {
    * 
    * @attribute
    */
-  get requestUrl(): string;
-  set requestUrl(value: string);
-
-  _requestUri: string;
+  requestUrl: string;
 
   /**
    * Current request body.
@@ -229,66 +255,253 @@ export default class AuthorizationMethod {
    * 
    * @attribute
    */
-  requestBody: string;
-
+  requestBody: any;
   /**
-   * Authorization domain
-   *
-   * Used in the following types:
-   * - NTLM
-   * @attribute
-   */
-  domain?: string;
-
-
-  /**
+   * Client ID aka consumer key
+   * 
    * Used by OAuth 1
    * @attribute
    */
   consumerKey: string;
   /**
+   * The client secret aka consumer secret
+   * 
    * Used by OAuth 1
    * @attribute
    */
   consumerSecret: string;
   /**
+   * Oauth 1 token secret (from the oauth console).
+   * 
    * Used by OAuth 1
    * @attribute
    */
   tokenSecret: string;
   /**
+   * Token request timestamp
+   * 
    * Used by OAuth 1
    * @attribute
    */
-  timestamp: string;
+  timestamp: number;
   /**
+   * Signature method. Enum {`HMAC-SHA256`, `HMAC-SHA1`, `PLAINTEXT`}
+   * 
    * Used by OAuth 1
    * @attribute
    */
   signatureMethod: string;
   /**
+   * OAuth1 endpoint to obtain request token to request user authorization.
+   * 
    * Used by OAuth 1
    * @attribute
    */
   requestTokenUri: string;
   /**
+   * HTTP method to obtain authorization header.
+   * Spec recommends POST
+   * 
    * Used by OAuth 1
    * @attribute
    */
   authTokenMethod: string;
   /**
-   * Used by OAuth 1
+   * A location of the OAuth 1 authorization parameters.
+   * It can be either in the URL as a query string (`querystring` value)
+   * or in the authorization header (`authorization`) value.
+   *
+   * Used in the following types:
+   * - OAuth 1
    * @attribute
    */
   authParamsLocation: string;
   /**
+   * List of currently support signature methods.
+   * 
    * Used by OAuth 1
    */
   signatureMethods: string[];
+  /**
+   * Selected authorization grand type.
+   * @attribute
+   */
+  grantType: string;
+  /**
+   * The client ID for the auth token.
+   * @attribute
+   */
+  clientId: string;
+  /**
+   * The client secret. It to be used when selected server flow.
+   * @attribute
+   */
+  clientSecret: string;
+  /**
+   * List of user selected scopes.
+   * It can be pre-populated with list of scopes (array of strings).
+   */
+  scopes: string[];
+
+  /**
+   * List of pre-defined scopes to choose from. It will be passed to the `oauth2-scope-selector`
+   * element.
+   */
+  allowedScopes: string[] | AllowedScope[];
+  /**
+   * If true then the `oauth2-scope-selector` will disallow to add a scope that is not
+   * in the `allowedScopes` list. Has no effect if the `allowedScopes` is not set.
+   * @attribute
+   */
+  preventCustomScopes: boolean;
+  /**
+   * When the user authorized the app it should be set to the token value.
+   * This element do not perform authorization. Other elements must intercept
+   * the token request event and perform the authorization.
+   * @attribute
+   */
+  accessToken: string;
+  /**
+   * By default it is "bearer" as the only one defined in OAuth 2.0 spec.
+   * If the token response contains `tokenType` property then this value is updated.
+   * @attribute
+   */
+  tokenType: string;
+  /**
+   * Currently available grant types.
+   */
+  grantTypes: GrantType[];
+  /**
+   * If set it renders authorization url, token url and scopes as advanced options
+   * which are then invisible by default. User can oen setting using the UI.
+   * @attribute
+   */
+  advanced: boolean;
+  /**
+   * If true then the advanced options are opened.
+   * @attribute
+   */
+  advancedOpened: boolean;
+  /**
+   * If set, the response type selector is hidden from the UI.
+   * @attribute
+   */
+  noGrantType: boolean;
+  /**
+   * Informs about what filed of the authenticated request the token property should be set.
+   * By default the value is `header` which corresponds to the `authorization` by default,
+   * but it is configured by the `deliveryName` property.
+   *
+   * This can be used by the AMF model when the API spec defines where the access token should be
+   * put in the authenticated request.
+   *
+   * @default header
+   * @attribute
+   */
+  oauthDeliveryMethod: OAuth2DeliveryMethod;
+  /**
+   * The client credentials delivery method.
+   * @default body
+   * @attribute
+   */
+  ccDeliveryMethod: OAuth2DeliveryMethod;
+  /**
+   * The name of the authenticated request property that carries the token.
+   * By default it is `authorization` which corresponds to `header` value of the `deliveryMethod` property.
+   *
+   * By setting both `deliveryMethod` and `deliveryName` you instruct the application (assuming it reads this values)
+   * where to put the authorization token.
+   *
+   * @default authorization
+   * @attribute
+   */
+  oauthDeliveryName: string;
+  /**
+   * The base URI to use to construct the correct URLs to the authorization endpoints.
+   *
+   * When the paths are relative then base URI is added to the path.
+   * Relative paths must start with '/'.
+   *
+   * Note, URL processing is happening internally in the component. The produced authorize event
+   * will have base URI already applied.
+   * @attribute
+   */
+  baseUri: string;
+  /**
+   * The error message returned by the authorization library.
+   * It renders error dialog when an error ocurred.
+   * It is automatically cleared when the user request the token again.
+   */
+  lastErrorMessage: string;
+  /**
+   * When this property is set then the PKCE option is not rendered for the
+   * `authorization_code`. This is mainly meant to be used by the `api-authorization-method`
+   * to keep this control disabled and override generated settings when the API spec
+   * says that the PKCE is supported.
+   * @attribute
+   */
+  noPkce: boolean;
+  /**
+   * Whether or not the PKCE extension is enabled for this authorization configuration.
+   * Note, PKCE, per the spec, is only available for `authorization_code` grantType.
+   * @attribute
+   */
+  pkce: boolean;
+  /**
+   * The definition of client credentials to be rendered for a given grant type.
+   * When set on the editor it renders a drop down where the user can choose from predefined
+   * credentials (client id & secret).
+   */
+  credentialsSource: Oauth2Credentials[];
+  /**
+   * Selected credential source
+   * @attribute
+   */
+  credentialSource: string;
+  /**
+   * When set it allows to edit the redirect URI by the user.
+   * @attribute
+   */
+  allowRedirectUriChange: boolean;
+  /** 
+   * The OpenID discovery URI.
+   * @attribute
+   */
+  issuerUri: string;
+  /** 
+   * The assertion parameter for the JWT token authorization.
+   * 
+   * @link https://datatracker.ietf.org/doc/html/rfc7523#section-2.1
+   * @attribute
+   */
+  assertion: string;
+  /** 
+   * The device_code parameter for the device code authorization.
+   * 
+   * @link https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
+   * @attribute
+   */
+  deviceCode: string;
+
+  onchange: EventListener | null;
+
+  // [factory]: AuthUiBase;
 
   constructor();
-  connectedCallback(): void;
-  render(): TemplateResult;
+
+  _attachListeners(node: EventTarget): void;
+  _detachListeners(node: EventTarget): void;
+
+  // [renderCallback](): Promise<void>;
+  // [changeCallback](): void;
+
+  // /**
+  //  * A function called when `type` changed.
+  //  * Note, that other properties may not be initialized just yet.
+  //  *
+  //  * @param type Current value.
+  //  */
+  // [typeChangedSymbol](type: string): void;
 
   /**
    * Clears settings for current type.
@@ -303,24 +516,40 @@ export default class AuthorizationMethod {
   serialize(): any;
 
   /**
+   * Validates current method.
+   */
+  validate(): boolean;
+
+  /**
    * Restores previously serialized settings.
    * A method type must be selected before calling this function.
    *
    * @param settings Depends on current type.
    */
-  restore(settings: any): any;
+  restore(settings: any): void;
 
   /**
-   * Validates current method.
-   */
-  validate(): boolean;
+  * For methods with asynchronous authorization, this functions
+  * calls the underlying authorize function and returns the authorization result.
+  * 
+  * @returns A promise resolved to the authorization result that depends on the method, or null
+  * if the current method does not support async authorization. 
+  * @throws {Error} When authorization error.
+  */
+  authorize(): Promise<any | null>;
+
   /**
-   * For methods with asynchronous authorization, this functions
-   * calls the underlying authorize function and returns the authorization result.
-   * 
-   * @returns A promise resolved to the authorization result that depends on the method, or null
-   * if the current method does not support async authorization. 
-   * @throws {Error} When authorization error.
+   * When the type is `open id` it reads the discovery URL data and populates
+   * the UI with them. This is equivalent to clicking on the `read` button
+   * in the OpenID type authorization.
    */
-  authorize(): Promise<any|null>;
+  discover(): Promise<void>;
+
+  // /**
+  //  * Handler for the `oauth1-token-response` custom event.
+  //  * Sets `token` and `tokenSecret` properties from the event.
+  //  */
+  // [oauth1tokenResponseHandler](e: CustomEvent): void;
+
+  render(): TemplateResult;
 }

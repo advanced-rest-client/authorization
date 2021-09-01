@@ -4,7 +4,8 @@ import '@anypoint-web-components/anypoint-input/anypoint-input.js';
 import '@anypoint-web-components/anypoint-input/anypoint-masked-input.js';
 import { AuthDialogElement, inputHandler } from './AuthDialogElement.js';
 
-// @ts-ignore
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.NtlmAuthorization} NtlmAuthorization */
+
 export default class AuthDialogNtlmElement extends AuthDialogElement {
   static get properties() {
     return {
@@ -28,9 +29,12 @@ export default class AuthDialogNtlmElement extends AuthDialogElement {
     this.username = '';
     this.password = '';
     this.domain = '';
-    
   }
 
+  /**
+   * Serialized input values
+   * @return {NtlmAuthorization} An object with user input
+   */
   serialize() {
     return {
       domain: this.domain,

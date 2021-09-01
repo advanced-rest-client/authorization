@@ -1,26 +1,27 @@
+import { OAuth2Server } from 'oauth2-mock-server';
+import getPort from 'get-port';
 import pkg from './test/oauth2/ServerMock.js';
 
 const { CodeServerMock } = pkg;
 
-export default {
+/** @typedef {import('@web/test-runner').TestRunnerConfig} TestRunnerConfig */
+
+const oauth2server = new OAuth2Server();
+let oauth2env;
+
+export default /** @type TestRunnerConfig */ ({
   files: 'test/**/*.test.js',
   nodeResolve: true,
-  testRunnerHtml: testFramework =>
-  `<html>
-    <body>
-      <script src="node_modules/cryptojslib/components/core.js"></script>
-      <script src="node_modules/cryptojslib/rollups/sha1.js"></script>
-      <script src="node_modules/cryptojslib/rollups/md5.js"></script>
-      <script src="node_modules/cryptojslib/rollups/hmac-sha1.js"></script>
-      <script src="node_modules/cryptojslib/components/enc-base64-min.js"></script>
-      <script type="module" src="${testFramework}"></script>
-    </body>
-  </html>`,
-  
   plugins: [
     {
       name: 'mock-api',
       serve(context) {
+        if (context.path === '/test/env.js') {
+          const data = {
+            oauth2: oauth2env,
+          };
+          return `export default ${JSON.stringify(data)}`;
+        }
         if (context.path === '/oauth2/auth-code') {
           return CodeServerMock.authRequest(context.request);
         }
@@ -51,6 +52,19 @@ export default {
         return undefined;
       },
     },
+    {
+      name: 'auth',
+      async serverStart() {
+        const port = await getPort({ port: getPort.makeRange(8000, 8100) });
+        const jwtKey = await oauth2server.issuer.keys.generateRSA();
+        await oauth2server.start(port, 'localhost');
+        oauth2env = {
+          port,
+          jwtKey,
+          issuer: oauth2server.issuer.url,
+        };
+      },
+    },
   ],
 
   middleware: [
@@ -67,4 +81,4 @@ export default {
       return next();
     }
   ]
-}
+})

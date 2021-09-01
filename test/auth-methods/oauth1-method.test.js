@@ -5,11 +5,12 @@ import { METHOD_OAUTH1 } from '../../index.js';
 import '../../authorization-method.js';
 import {
   defaultSignatureMethods,
-  setOauth1Defaults
-} from '../../src/Oauth1MethodMixin.js';
+} from '../../src/lib/ui/OAuth1.js';
+import { factory } from '../../src/AuthorizationMethodElement.js';
 
 /** @typedef {import('../../src/AuthorizationMethodElement').default} AuthorizationMethod */
 /** @typedef {import('@anypoint-web-components/anypoint-input').AnypointInput} AnypointInput */
+/** @typedef {import('../../src/lib/ui/OAuth1').default} OAuth1 */
 
 describe('OAuth 1 method', () => {
   const inputFields = [
@@ -152,7 +153,7 @@ describe('OAuth 1 method', () => {
         const input = /** @type AnypointInput */ (element.shadowRoot.querySelector(`*[name="${name}"]`));
         setTimeout(() => {
           input.value = value;
-          input.dispatchEvent(new CustomEvent('input'));
+          input.dispatchEvent(new CustomEvent('change'));
         });
         const e = await oneEvent(element, 'change');
         assert.ok(e);
@@ -174,7 +175,8 @@ describe('OAuth 1 method', () => {
     it('does not notify when sets default', () => {
       const handler = spy();
       element.addEventListener('change', handler);
-      element[setOauth1Defaults]();
+      const f = /** @type OAuth1 */ (element[factory]);
+      f.defaults();
       assert.isFalse(handler.called);
     });
 
