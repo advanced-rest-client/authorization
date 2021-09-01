@@ -24,6 +24,10 @@ import {
 import { UiDataHelper } from "./lib/ui/UiDataHelper.js";
 
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OAuth2DeliveryMethod} OAuth2DeliveryMethod */
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.OidcTokenInfo} OidcTokenInfo */
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.OidcTokenError} OidcTokenError */
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.Oauth2GrantType} Oauth2GrantType */
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.Oauth2ResponseType} Oauth2ResponseType */
 /** @typedef {import('./lib/ui/AuthUiBase').default} AuthUiBase */
 /** @typedef {import('./lib/ui/HttpBasic').default} HttpBasic */
 /** @typedef {import('./lib/ui/HttpBearer').default} HttpBearer */
@@ -33,7 +37,6 @@ import { UiDataHelper } from "./lib/ui/UiDataHelper.js";
 /** @typedef {import('./lib/ui/OAuth2').default} OAuth2 */
 /** @typedef {import('./lib/ui/OpenID').default} OpenID */
 /** @typedef {import('./types').AuthUiInit} AuthUiInit */
-/** @typedef {import('./types').GrantType} GrantType */
 /** @typedef {import('./types').Oauth2Credentials} Oauth2Credentials */
 /** @typedef {import('./OAuth2ScopeSelectorElement').AllowedScope} AllowedScope */
 
@@ -455,6 +458,26 @@ export default class AuthorizationMethodElement extends EventsTargetMixin(LitEle
        * @link https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
        */
       deviceCode: { type: String },
+      /** 
+       * In OIDC configuration, the list of mist recent tokens requested from the auth server.
+       */
+      tokens: { type: Array },
+      /** 
+       * In OIDC configuration, the array index of the token to be used with HTTP request.
+       */
+      tokenInUse: { type: Number },
+      /** 
+       * In OIDC configuration, the list of response types supported by the authorization server.
+       */
+      supportedResponses: { type: Array },
+      /** 
+       * In OIDC configuration, the list of scopes supported by the authorization server.
+       */
+      serverScopes: { type: Array },
+      /** 
+       * In OIDC configuration, the response type to be used with the OAuth 2 request.
+       */
+      responseType: { type: String },
     };
   }
 
@@ -544,7 +567,7 @@ export default class AuthorizationMethodElement extends EventsTargetMixin(LitEle
     this.accessToken = undefined;
     /** @type string */
     this.tokenType = undefined;
-    /** @type GrantType[] */
+    /** @type Oauth2GrantType[] */
     this.grantTypes = undefined;
     /** @type boolean */
     this.advanced = undefined;
@@ -624,6 +647,16 @@ export default class AuthorizationMethodElement extends EventsTargetMixin(LitEle
     this.assertion = undefined;
      /** @type {string} */
     this.deviceCode = undefined;
+    /** @type {(OidcTokenInfo | OidcTokenError)[]} */
+    this.tokens = undefined;
+    /** @type number */
+    this.tokenInUse = undefined;
+    /** @type Oauth2ResponseType[][] */
+    this.supportedResponses = undefined;
+    /** @type string[] */
+    this.serverScopes = undefined;
+    /** @type string */
+    this.responseType = undefined;
 
     /** @type AuthUiBase */
     this[factory] = undefined;
@@ -702,8 +735,15 @@ export default class AuthorizationMethodElement extends EventsTargetMixin(LitEle
         this[factory].anypoint = this[key];
       }
     }
-    if (normalizeType(this.type) === METHOD_OAUTH2) {
+    const type = normalizeType(this.type);
+    if (type === METHOD_OAUTH2) {
       /** @type OAuth2 */ (this[factory]).autoHideOnce();
+    } else if (type === METHOD_OIDC) {
+      const f = /** @type OpenID */ (this[factory]);
+      f.detectDiscovered();
+      if (changedProperties.has('supportedResponses')) {
+        f.detectSelectedResponseType();
+      }
     }
     super.update(changedProperties);
   }

@@ -8,7 +8,7 @@ import '../oidc-authorization.js';
 import '../authorization-method.js';
 import env from './env.js';
 
-console.log(env);
+const storeKey = 'authorization.openId.configuration';
 
 class ComponentDemo extends DemoPage {
   constructor() {
@@ -58,6 +58,20 @@ class ComponentDemo extends DemoPage {
     this.openIdChangesCounter++;
     const result = e.target.serialize();
     console.log(result);
+    localStorage.setItem(storeKey, JSON.stringify(result));
+  }
+
+  restoreHandler() {
+    const str = localStorage.getItem(storeKey);
+    if (!str) {
+      return;
+    }
+    const info = JSON.parse(str);
+    console.log('Restoring', info);
+    const method = document.querySelector('authorization-method');
+    Object.keys(info).forEach(k => {
+      method[k] = info[k];
+    });
   }
 
   /**
@@ -134,6 +148,10 @@ class ComponentDemo extends DemoPage {
       </div>
       
       <p>Change events counter: ${openIdChangesCounter}</p>
+
+      <div>
+        <anypoint-button @click="${this.restoreHandler}">Restore from local storage</anypoint-button>
+      </div>
     </section>
     `;
   }

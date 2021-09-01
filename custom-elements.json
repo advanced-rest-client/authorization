@@ -993,6 +993,16 @@
           "name": "deviceCode",
           "description": "The device_code parameter for the device code authorization.",
           "type": "string"
+        },
+        {
+          "name": "tokenInUse",
+          "description": "In OIDC configuration, the array index of the token to be used with HTTP request.",
+          "type": "number"
+        },
+        {
+          "name": "responseType",
+          "description": "In OIDC configuration, the response type to be used with the OAuth 2 request.",
+          "type": "string"
         }
       ],
       "properties": [
@@ -1244,7 +1254,7 @@
         {
           "name": "grantTypes",
           "description": "Currently available grant types.",
-          "type": "GrantType[]"
+          "type": "Oauth2GrantType[]"
         },
         {
           "name": "advanced",
@@ -1341,6 +1351,33 @@
           "name": "deviceCode",
           "attribute": "deviceCode",
           "description": "The device_code parameter for the device code authorization.",
+          "type": "string"
+        },
+        {
+          "name": "tokens",
+          "description": "In OIDC configuration, the list of mist recent tokens requested from the auth server.",
+          "type": "(OidcTokenInfo | OidcTokenError)[]"
+        },
+        {
+          "name": "tokenInUse",
+          "attribute": "tokenInUse",
+          "description": "In OIDC configuration, the array index of the token to be used with HTTP request.",
+          "type": "number"
+        },
+        {
+          "name": "supportedResponses",
+          "description": "In OIDC configuration, the list of response types supported by the authorization server.",
+          "type": "Oauth2ResponseType[][]"
+        },
+        {
+          "name": "serverScopes",
+          "description": "In OIDC configuration, the list of scopes supported by the authorization server.",
+          "type": "string[]"
+        },
+        {
+          "name": "responseType",
+          "attribute": "responseType",
+          "description": "In OIDC configuration, the response type to be used with the OAuth 2 request.",
           "type": "string"
         },
         {

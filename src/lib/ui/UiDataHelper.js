@@ -151,6 +151,11 @@ export class UiDataHelper {
     const i = new OpenID(init);
     this.setOAuth2Values(i, element);
     i.issuerUri = element.issuerUri;
+    i.tokens = element.tokens;
+    i.tokenInUse = element.tokenInUse;
+    i.supportedResponses = element.supportedResponses;
+    i.serverScopes = element.serverScopes;
+    i.responseType = element.responseType;
     return i;
   }
 
@@ -262,5 +267,10 @@ export class UiDataHelper {
   static populateOpenId(element, ui) {
     this.populateOAuth2(element, ui);
     element.issuerUri = ui.issuerUri;
+    element.tokens = ui.tokens;
+    element.tokenInUse = ui.tokenInUse;
+    element.supportedResponses = ui.supportedResponses;
+    element.serverScopes = ui.serverScopes;
+    element.responseType = ui.responseType;
   }
 }

@@ -522,6 +522,65 @@ describe('OpenID Connect', () => {
       const result = element.serialize();
       assert.isUndefined(result.accessToken);
     });
+
+    it('adds the issuerUri property', () => {
+      const result = element.serialize();
+      assert.equal(result.issuerUri, env.oauth2.issuer);
+    });
+
+    it('adds the tokens property', () => {
+      const tokens = [
+        {
+          responseType: 'code',
+          state: 'abc',
+          time: 1,
+          accessToken: 'test-token'
+        }
+      ];
+      ui.tokens = tokens;
+      const result = element.serialize();
+      assert.deepEqual(result.tokens, tokens);
+    });
+
+    it('adds the tokenInUse property', () => {
+      const tokens = [
+        {
+          responseType: 'code',
+          state: 'abc',
+          time: 1,
+          accessToken: 'test-token'
+        }
+      ];
+      ui.tokens = tokens;
+      ui.tokenInUse = 1;
+      const result = element.serialize();
+      assert.equal(result.tokenInUse, 1);
+    });
+
+    it('adds the supportedResponses property', () => {
+      const responses = [
+        [ { label: 'a', type: 'b' } ],
+      ];
+      ui.supportedResponses = responses;
+      const result = element.serialize();
+      assert.deepEqual(result.supportedResponses, responses);
+    });
+
+    it('adds the grantTypes property', () => {
+      const grantTypes = [
+        { label: 'a', type: 'b' },
+      ];
+      ui.grantTypes = grantTypes;
+      const result = element.serialize();
+      assert.deepEqual(result.grantTypes, grantTypes);
+    });
+
+    it('adds the serverScopes property', () => {
+      const serverScopes = ['a'];
+      ui.serverScopes = serverScopes;
+      const result = element.serialize();
+      assert.deepEqual(result.serverScopes, serverScopes);
+    });
   });
 
   describe('authorize()', () => {
@@ -577,7 +636,7 @@ describe('OpenID Connect', () => {
       assert.typeOf(token.idToken, 'string', 'has the idToken');
       assert.isFalse(ui.authorizing, 're-sets authorizing flag');
       assert.isUndefined(ui.accessToken, 'accessToken is removed');
-      assert.equal(ui.selectedToken, 0, 'selectedToken is set');
+      assert.equal(ui.tokenInUse, 0, 'tokenInUse is set');
     });
   });
 });

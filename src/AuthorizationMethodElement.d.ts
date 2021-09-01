@@ -1,8 +1,8 @@
 import { LitElement, CSSResult, TemplateResult } from 'lit-element';
 import { EventsTargetMixin } from '@advanced-rest-client/events-target-mixin/events-target-mixin.js';
-import { Oauth2Credentials, GrantType } from './types';
+import { Oauth2Credentials } from './types';
 import { AllowedScope } from './OAuth2ScopeSelectorElement';
-import { OAuth2DeliveryMethod } from '@advanced-rest-client/arc-types/src/authorization/Authorization';
+import { OAuth2DeliveryMethod, OidcTokenError, OidcTokenInfo, Oauth2GrantType, Oauth2ResponseType } from '@advanced-rest-client/arc-types/src/authorization/Authorization';
 
 export const typeChangedSymbol: unique symbol;
 export const typeValue: unique symbol;
@@ -371,7 +371,7 @@ export default class AuthorizationMethod extends EventsTargetMixin(LitElement) {
   /**
    * Currently available grant types.
    */
-  grantTypes: GrantType[];
+  grantTypes: Oauth2GrantType[];
   /**
    * If set it renders authorization url, token url and scopes as advanced options
    * which are then invisible by default. User can oen setting using the UI.
@@ -483,6 +483,28 @@ export default class AuthorizationMethod extends EventsTargetMixin(LitElement) {
    * @attribute
    */
   deviceCode: string;
+  /** 
+   * In OIDC configuration, the list of mist recent tokens requested from the auth server.
+   */
+  tokens: (OidcTokenInfo | OidcTokenError)[];
+  /** 
+   * In OIDC configuration, the array index of the token to be used with HTTP request.
+   * @attribute
+   */
+  tokenInUse: number;
+  /** 
+   * In OIDC configuration, the list of response types supported by the authorization server.
+   */
+  supportedResponses: Oauth2ResponseType[][];
+  /** 
+   * In OIDC configuration, the list of scopes supported by the authorization server.
+   */
+  serverScopes: string[];
+  /** 
+   * In OIDC configuration, the response type to be used with the OAuth 2 request.
+   * @attribute
+   */
+  responseType: string;
 
   onchange: EventListener | null;
 

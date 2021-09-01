@@ -9,13 +9,13 @@ import * as KnownGrants from '../KnownGrants.js';
 
 /** @typedef {import('lit-element').TemplateResult} TemplateResult */
 /** @typedef {import('@anypoint-web-components/anypoint-listbox').AnypointListbox} AnypointListbox */
-/** @typedef {import('@advanced-rest-client/arc-types').Authorization.OAuth2Authorization} OAuth2Authorization */
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.OidcAuthorization} OidcAuthorization */
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OidcTokenInfo} OidcTokenInfo */
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OidcTokenError} OidcTokenError */
 /** @typedef {import('../../types').AuthUiInit} AuthUiInit */
 /** @typedef {import('../../types').OpenIdProviderMetadata} OpenIdProviderMetadata */
-/** @typedef {import('../../types').GrantType} GrantType */
-/** @typedef {import('../../types').Oauth2ResponseType} Oauth2ResponseType */
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.Oauth2GrantType} Oauth2GrantType */
+/** @typedef {import('@advanced-rest-client/arc-types').Authorization.Oauth2ResponseType} Oauth2ResponseType */
 
 export const GrantLabels = {
   [KnownGrants.implicit]: 'Access token',
@@ -37,7 +37,7 @@ export const ResponseTypeLabels = {
 export const discoveryCache = new Map();
 
 /**
- * @return {GrantType[]} The default grant types for OIDC
+ * @return {Oauth2GrantType[]} The default grant types for OIDC
  */
 export const defaultGrantTypes = [
   {
@@ -74,9 +74,7 @@ export default class OpenID extends OAuth2 {
     /** @type {(OidcTokenInfo | OidcTokenError)[]} */
     this.tokens = undefined;
     /** @type number */
-    this.selectedToken = undefined;
-    /** @type number */
-    this.expiresAt = undefined;
+    this.tokenInUse = undefined;
     /** @type Oauth2ResponseType[][] */
     this.supportedResponses = undefined;
     /** 
@@ -85,28 +83,45 @@ export default class OpenID extends OAuth2 {
      * @type number 
      */
     this.selectedResponse = undefined;
+    /** 
+     * The list of scopes supported by the authorization server.
+     * @type string[]
+     */
+    this.serverScopes = undefined;
+    /** 
+     * The response type to be used with the OAuth 2 request.
+     * @type string
+     */
+    this.responseType = undefined;
 
     this._issuerUriHandler = this._issuerUriHandler.bind(this);
     this._issuerReadHandler = this._issuerReadHandler.bind(this);
     this._responseTypeSelectionHandler = this._responseTypeSelectionHandler.bind(this);
     this._selectNodeHandler = this._selectNodeHandler.bind(this);
-    this._selectedTokenHandler = this._selectedTokenHandler.bind(this);
+    this._tokenInUseHandler = this._tokenInUseHandler.bind(this);
   }
 
   /**
    * Serialized input values
-   * @return {OAuth2Authorization} An object with user input
+   * @return {OidcAuthorization} An object with user input
    */
   serialize() {
-    const result = super.serialize();
+    const result = /** @type OidcAuthorization */ (super.serialize());
     delete result.accessToken;
-    const { selectedResponse=0, supportedResponses=[], tokens, selectedToken=0 } = this;
+    result.issuerUri = this.issuerUri;
+    result.tokens = this.tokens;
+    result.tokenInUse = this.tokenInUse;
+    result.supportedResponses = this.supportedResponses;
+    result.grantTypes = this.grantTypes;
+    result.serverScopes = this.serverScopes;
+
+    const { selectedResponse=0, supportedResponses=[], tokens, tokenInUse=0 } = this;
     const response = supportedResponses[selectedResponse];
     if (response) {
       result.responseType = response.map(i => i.type).join(' ');
     }
     if (Array.isArray(tokens)) {
-      result.accessToken = this.readTokenValue(/** @type OidcTokenInfo */ (tokens[selectedToken]));
+      result.accessToken = this.readTokenValue(/** @type OidcTokenInfo */ (tokens[tokenInUse]));
     }
     if (result.responseType && !this.noPkce && result.responseType.includes('code')) {
       result.pkce = this.pkce;
@@ -137,7 +152,7 @@ export default class OpenID extends OAuth2 {
       }
       this.tokens = tokens;
       this.accessToken = undefined;
-      this.selectedToken = 0;
+      this.tokenInUse = 0;
       this.notifyChange();
       await this.requestUpdate();
     } catch (e) {
@@ -151,6 +166,19 @@ export default class OpenID extends OAuth2 {
 
     await this.requestUpdate();
     return null;
+  }
+
+  /**
+   * @param {OidcAuthorization} state
+   */
+  restore(state) {
+    super.restore(state);
+    this.issuerUri = state.issuerUri;
+    this.tokens = state.tokens;
+    this.tokenInUse = state.tokenInUse;
+    this.supportedResponses = state.supportedResponses;
+    this.serverScopes = state.serverScopes;
+    this.discovered = true;
   }
 
   /**
@@ -303,9 +331,11 @@ export default class OpenID extends OAuth2 {
       this.accessTokenUri = meta.token_endpoint;
     }
     if (Array.isArray(meta.grant_types_supported) && meta.grant_types_supported.length) {
+      this.serverScopes = meta.grant_types_supported;
       this.grantTypes = this.translateGrantTypesMeta(meta.grant_types_supported);
     } else {
       this.grantTypes = [...defaultGrantTypes];
+      this.serverScopes = undefined;
     }
     if (Array.isArray(meta.scopes_supported)) {
       this.scopes = meta.scopes_supported;
@@ -315,8 +345,49 @@ export default class OpenID extends OAuth2 {
   }
 
   /**
+   * Sets the `discovered` flag depending on the current configuration.
+   */
+  detectDiscovered() {
+    const { issuerUri, authorizationUri, grantTypes, scopes } = this;
+    if (!issuerUri || !authorizationUri) {
+      this.discovered = false;
+      return;
+    }
+    if (!Array.isArray(grantTypes) || !grantTypes.length) {
+      this.discovered = false;
+      return;
+    }
+    if (!Array.isArray(scopes) || !scopes.length) {
+      this.discovered = false;
+      return;
+    }
+    this.discovered = true;
+  }
+
+  /**
+   * A function called from the auth element `updated` lifecycle method.
+   * It tries to figure out the `selectedResponse` from the current list of 
+   * `supportedResponses` and the `responseType`.
+   */
+  detectSelectedResponseType() {
+    const { supportedResponses, selectedResponse, responseType } = this;
+    if (!responseType || !Array.isArray(supportedResponses)) {
+      return;
+    }
+    const parts = responseType.split(' ');
+    const index = supportedResponses.findIndex((i) => {
+      const rspTypes = i.map(e => e.type);
+      const hasNotFound = parts.some(p => !rspTypes.includes(p));
+      return !hasNotFound;
+    });
+    if (index >= 0 && selectedResponse !== index) {
+      this.selectedResponse = index;
+    }
+  }
+
+  /**
    * @param {string[]} types
-   * @returns {GrantType[]}
+   * @returns {Oauth2GrantType[]}
    */
   translateGrantTypesMeta(types) {
     const result = [];
@@ -372,13 +443,13 @@ export default class OpenID extends OAuth2 {
   /**
    * @param {Event} e
    */
-  _selectedTokenHandler(e) {
+  _tokenInUseHandler(e) {
     const input = /** @type HTMLInputElement */ (e.target);
     const { value } = input;
     if (!input.checked) {
       return;
     }
-    this.selectedToken = Number(value);
+    this.tokenInUse = Number(value);
     this.notifyChange();
   }
 
@@ -587,10 +658,10 @@ export default class OpenID extends OAuth2 {
       <input 
         type="radio" 
         id="${responseType}" 
-        name="selectedToken" 
+        name="tokenInUse" 
         .value="${String(index)}" 
-        ?checked="${this.selectedToken === index}"
-        @change="${this._selectedTokenHandler}"
+        ?checked="${this.tokenInUse === index}"
+        @change="${this._tokenInUseHandler}"
       >
       <div class="token-info">
         <label for="${responseType}" class="token-label">
