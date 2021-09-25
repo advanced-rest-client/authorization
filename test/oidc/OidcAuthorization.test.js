@@ -180,7 +180,7 @@ describe('OidcAuthorization', () => {
       });
     });
 
-    describe('[handleTokenInfo]()', () => {
+    describe('processTokenResponse()', () => {
       it('resolves error when no state', async () => {
         const instance = new OidcAuthorization({
           responseType: 'code',

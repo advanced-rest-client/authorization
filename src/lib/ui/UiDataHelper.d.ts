@@ -16,6 +16,7 @@ export class UiDataHelper {
   static setDigestValues(i: Digest, element: AuthorizationMethodElement): void;
   static setupOauth1(element: AuthorizationMethodElement, init: AuthUiInit): OAuth1;
   static setupOauth2(element: AuthorizationMethodElement, init: AuthUiInit): OAuth2;
+  static setOAuth2Values(i: OAuth2, element: AuthorizationMethodElement): void;
   static setupOidc(element: AuthorizationMethodElement, init: AuthUiInit): OpenID;
   static populateBasic(element: AuthorizationMethodElement, ui: HttpBasic): void;
   static populateBearer(element: AuthorizationMethodElement, ui: HttpBearer): void;
