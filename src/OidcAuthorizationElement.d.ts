@@ -4,6 +4,9 @@ import { Authorization } from '@advanced-rest-client/arc-types'
 
 export declare const authorizeHandler: unique symbol;
 
+/**
+ * @deprecated Use `@advanced-rest-client/app` instead.
+ */
 export default class OidcAuthorizationElement extends EventsTargetMixin(HTMLElement) {
   /** 
    * When set it uses this value to prefix the call to the 

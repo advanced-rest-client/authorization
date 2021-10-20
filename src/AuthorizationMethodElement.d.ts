@@ -23,6 +23,7 @@ export const propagateChanges: unique symbol;
  * property) a render function from corresponding mixin is called.
  * 
  * @fires change When authorization state change
+ * @deprecated Use `@advanced-rest-client/app` instead.
  */
 export default class AuthorizationMethod extends EventsTargetMixin(LitElement) {
   get styles(): CSSResult;

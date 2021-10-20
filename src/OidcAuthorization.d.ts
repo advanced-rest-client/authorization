@@ -1,6 +1,9 @@
 import { OidcTokenError, OidcTokenInfo } from '@advanced-rest-client/arc-types/src/authorization/Authorization';
 import { OAuth2Authorization } from './OAuth2Authorization.js';
 
+/**
+ * @deprecated Use `@advanced-rest-client/app` instead.
+ */
 export declare class OidcAuthorization extends OAuth2Authorization {
   /**
    * @returns The parameters to build popup URL.

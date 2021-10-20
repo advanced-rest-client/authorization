@@ -87,6 +87,7 @@ export declare interface AllowedScope {
  * 
  * @fires change When the scopes list changed. Non bubbling.
  * @fires invalidchange When the invalid value change. Non bubbling.
+ * @deprecated Use `@advanced-rest-client/app` instead.
  */
 export default class OAuth2ScopeSelectorElement extends ControlStateMixin(ValidatableMixin(LitElement)) {
   get styles(): CSSResult;

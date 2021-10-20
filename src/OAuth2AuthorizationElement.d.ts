@@ -7,6 +7,7 @@ export declare const authorizeHandler: unique symbol;
 /**
  * An element that utilizes the `OAuth2Authorization` class in a web component.
  * It handles DOM events to perform the authorization.
+ * @deprecated Use `@advanced-rest-client/app` instead.
  */
 export class OAuth2AuthorizationElement extends EventsTargetMixin(HTMLElement) {
   /** 

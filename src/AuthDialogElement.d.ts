@@ -18,6 +18,9 @@ import { AnypointDialog } from '@anypoint-web-components/anypoint-dialog';
 
 export declare const inputHandler: unique symbol;
 
+/**
+ * @deprecated Use `@advanced-rest-client/app` instead.
+ */
 // @ts-ignore
 export class AuthDialogElement extends AnypointDialog {
   static get styles(): CSSResult[];

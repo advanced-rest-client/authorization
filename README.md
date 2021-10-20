@@ -1,4 +1,8 @@
-# Authorization
+# Deprecated
+
+This component is deprecated. Use `@advanced-rest-client/app` instead.
+
+---------
 
 [![Published on NPM](https://img.shields.io/npm/v/@advanced-rest-client/authorization.svg)](https://www.npmjs.com/package/@advanced-rest-client/authorization)
 

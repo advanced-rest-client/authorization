@@ -41,6 +41,7 @@ export declare const grantResponseMapping: Record<string, string>;
  * 
  * It is build for API components ecosystem and the configuration is defined in `@advanced-rest-client/arc-types`
  * so all components use the same configuration.
+ * @deprecated Use `@advanced-rest-client/app` instead.
  */
 export class OAuth2Authorization {
   /**

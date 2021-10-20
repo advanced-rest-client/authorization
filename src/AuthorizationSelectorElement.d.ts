@@ -39,6 +39,7 @@ export declare function nodeToLabel(node: AuthorizationMethod, attrForLabel?: st
  * @fires change When configuration change
  * @slot - Authorization method to be rendered. Must have `type` attribute to be rendered.
  * @slot aria - For description of the selected method. Recognized by `aria-describedby` property of the auth method
+ * @deprecated Use `@advanced-rest-client/app` instead.
  */
 export default class AuthorizationSelectorElement extends MultiSelectableMixin(LitElement) {
   get styles(): CSSResult;
