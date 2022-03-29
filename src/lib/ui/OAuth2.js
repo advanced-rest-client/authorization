@@ -13,7 +13,6 @@ import '../../../oauth2-scope-selector.js';
 import { CUSTOM_CREDENTIALS, generateState, readUrlValue, selectNode, validateRedirectUri } from "../../Utils.js";
 import * as KnownGrants from '../KnownGrants.js';
 
-
 /** @typedef {import('lit-element').TemplateResult} TemplateResult */
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OAuth2Authorization} OAuth2Authorization */
 /** @typedef {import('@advanced-rest-client/arc-types').Authorization.OAuth2DeliveryMethod} OAuth2DeliveryMethod */
@@ -583,6 +582,14 @@ export default class OAuth2 extends AuthUiBase {
     const detail = this.serialize();
     const state = generateState();
     detail.state = state;
+    this.target.dispatchEvent(
+      new CustomEvent('oauth2-token-requested', {
+        detail,
+        bubbles: true,
+        composed: true,
+        cancelable: true,
+      })
+    );
     let tokenInfo = /** @type TokenInfo */(null);
     try {
       tokenInfo = await AuthorizationEvents.OAuth2.authorize(this.target, detail);
