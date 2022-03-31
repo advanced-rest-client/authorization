@@ -401,6 +401,14 @@ describe('OAuth 2, implicit method', () => {
       assert.typeOf(eventState, 'string', 'event state is set');
     });
 
+    it('dispatches authorization event', async () => {
+      const handler = spy();
+      element.addEventListener('oauth2-token-requested', handler);
+      element.authorize();
+      const { detail } = handler.args[0][0];
+      assert.isDefined(detail);
+    });
+
     it('sets values from the response event with state', async () => {
       mockTokenRequest(undefined, 'other');
       element.authorize();
