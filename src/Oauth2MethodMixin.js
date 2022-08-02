@@ -540,6 +540,14 @@ const mxFunction = (base) => {
       const detail = this[serializeOauth2Auth]();
       const state = this.generateState();
       detail.state = state;
+      this.dispatchEvent(
+        new CustomEvent('oauth2-token-requested', {
+          detail,
+          bubbles: true,
+          composed: true,
+          cancelable: true,
+        })
+      );
       let tokenInfo = /** @type TokenInfo */(null);
       try {
         tokenInfo = await AuthorizationEvents.OAuth2.authorize(this, detail);
