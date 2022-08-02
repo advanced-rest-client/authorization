@@ -155,6 +155,9 @@ const mxFunction = (base) => {
 
     get clientIdRequired() {
       const { grantType } = this;
+      if (!grantType) {
+        return false;
+      }
       return !['client_credentials', 'password'].includes(grantType);
     }
 
