@@ -54,7 +54,7 @@ jobs:
   #       run: npm test
   tag:
     name: "Publishing release"
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref,'refs/heads/support') == true
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref,'refs/heads/support/') == true
     needs: 
       - test_linux
       # - test_win
