@@ -7,10 +7,12 @@ on:
       - master
       - main
       - develop
+      - support/*
   pull_request:
     branches:
       - master
       - main
+      - support/*
 jobs:
   test_linux:
     name: Ubuntu
