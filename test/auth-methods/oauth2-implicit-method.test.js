@@ -363,11 +363,22 @@ describe('OAuth 2, implicit method', () => {
       assert.isTrue(handler.called);
     });
 
-    it('sets #authorizing flag', () => {
-      mockTokenRequest();
+    it('calls authorize() from button click', () => {
+      const button = /** @type HTMLElement */ (element.shadowRoot.querySelector('.auth-button'));
+      const handler = spy();
+      element.addEventListener(AuthorizationEventTypes.OAuth2.authorize, handler);
+      button.click();
+      assert.isTrue(handler.called);
+    });
+
+    it('renders error message when token request fails', async () => {
+      mockTokenErrorRequest('This is an error');
       const button = /** @type HTMLElement */ (element.shadowRoot.querySelector('.auth-button'));
       button.click();
-      assert.isTrue(element.authorizing);
+
+      await nextFrame();
+      const node = element.shadowRoot.querySelector('.error-message');
+      assert.ok(node);
     });
 
     it('ignores authorization when did not pass validation', async () => {
