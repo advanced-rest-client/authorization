@@ -962,6 +962,12 @@ const mxFunction = (base) => {
       </div>`;
     }
 
+    authorizeHandler() {
+      return this.authorize().catch(error => {
+        this.lastErrorMessage = error.message
+      })
+    }
+
     /**
      * @returns {TemplateResult|string} The template for the "authorize" button.
      */
@@ -975,7 +981,7 @@ const mxFunction = (base) => {
           ?compatibility="${compatibility}"
           emphasis="medium"
           data-type="get-token"
-          @click="${this.authorize}"
+          @click="${this.authorizeHandler}"
         >Request access token</anypoint-button>
       </div>`;
     }
