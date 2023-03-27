@@ -19,6 +19,19 @@ describe('OAuth 2, client credentials method', () => {
     ['ccDeliveryMethod', 'header']
   ];
 
+  function mockTokenRequest(state, tokenType) {
+    window.addEventListener(AuthorizationEventTypes.OAuth2.authorize, function f(e) {
+      window.removeEventListener(AuthorizationEventTypes.OAuth2.authorize, f);
+      e.preventDefault();
+      // @ts-ignore
+      e.detail.result = Promise.resolve({
+        tokenType,
+        // @ts-ignore
+        state: state || e.detail.state,
+      });
+    });
+  }
+
   function createParamsMap() {
     const props = {
       grantType: clientCredentialsGrantType,
@@ -286,6 +299,13 @@ describe('OAuth 2, client credentials method', () => {
       await element.authorize();
       const { detail } = handler.args[0][0];
       assert.equal(detail.deliveryMethod, 'header');
+    });
+
+    it('sets "lastErrorMessage" when client_credentians and no token', async () => {
+      mockTokenRequest('This is an error');
+      await element.authorize();
+      await nextFrame();
+      assert.equal(element.lastErrorMessage, 'Missing access_token in response');
     });
   });
 

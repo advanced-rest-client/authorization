@@ -567,6 +567,9 @@ const mxFunction = (base) => {
           this.accessToken = tokenInfo.accessToken;
           notifyChange(this);
         }
+        if (detail.grantType === 'client_credentials' && !tokenInfo.accessToken) {
+          this.lastErrorMessage = 'Missing access_token in response';
+      }
       } catch (e) {
         const { message = 'Unknown error' } = e;
         this.lastErrorMessage = message;
