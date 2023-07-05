@@ -165,7 +165,7 @@ describe('OAuth 2, client credentials method', () => {
       const button = /** @type HTMLElement */ (element.shadowRoot.querySelector('.adv-settings-input'));
       button.click();
       await nextFrame();
-      assert.equal(getComputedStyle(section).display, 'block', 'section is not hidden');
+      assert.equal(getComputedStyle(section).display, 'inline-grid', 'section is not hidden');
     });
 
     it('does not render PKCE checkbox', async () => {
