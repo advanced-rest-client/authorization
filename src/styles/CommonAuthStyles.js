@@ -142,4 +142,11 @@ export default css`
   .delivery-dropdown {
     margin: 16px 0;
   }
+  
+  .advanced-section {
+    display: inline-grid;
+    align-content: center;
+    justify-content: start;
+    align-items: center;
+  }
 `;
