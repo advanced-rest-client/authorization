@@ -543,15 +543,16 @@ describe('OAuth 2, implicit method', () => {
       const node = element.shadowRoot.querySelector('.redirect-section');
       const label = /** @type HTMLElement */ (node.querySelector('.code'));
       label.click();
-      await aTimeout(0);
+      await aTimeout(20);
       const selection = window.getSelection();
       assert.ok(selection.anchorNode);
     });
 
-    it('makes text selection from focus', () => {
+    it('makes text selection from focus', async () => {
       const node = element.shadowRoot.querySelector('.redirect-section');
       const label = /** @type HTMLElement */ (node.querySelector('.code'));
       label.focus();
+      await aTimeout(0);
       const selection = window.getSelection();
       assert.ok(selection.anchorNode);
     });
