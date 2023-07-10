@@ -139,7 +139,7 @@ describe('OAuth 2, authorization code method', () => {
       const button = /** @type HTMLElement */ (element.shadowRoot.querySelector('.adv-settings-input'));
       button.click();
       await nextFrame();
-      assert.equal(getComputedStyle(section).display, 'block', 'section is not hidden');
+      assert.equal(getComputedStyle(section).display, 'inline-grid', 'section is not hidden');
     });
 
     it('renders the PKCE checkbox', async () => {

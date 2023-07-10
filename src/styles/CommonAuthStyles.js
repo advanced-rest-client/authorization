@@ -143,10 +143,6 @@ export default css`
     color: var(--error-color);
   }
 
-  .delivery-dropdown {
-    margin: 16px 0;
-  }
-
   .issuer-input {
     display: flex;
     align-items: center;
@@ -183,5 +179,12 @@ export default css`
   .token-option .token-label {
     margin: 8px 0;
     display: block;
+  }
+
+  .advanced-section {
+    display: inline-grid;
+    align-content: center;
+    justify-content: start;
+    align-items: center;
   }
 `;
