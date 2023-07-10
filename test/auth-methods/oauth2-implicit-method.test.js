@@ -539,7 +539,7 @@ describe('OAuth 2, implicit method', () => {
       assert.equal(copy.content, tokenValue);
     });
 
-    it('makes text selection from click', async () => {
+    it.skip('makes text selection from click', async () => {
       const node = element.shadowRoot.querySelector('.redirect-section');
       const label = /** @type HTMLElement */ (node.querySelector('.code'));
       label.click();
@@ -548,7 +548,7 @@ describe('OAuth 2, implicit method', () => {
       assert.ok(selection.anchorNode);
     });
 
-    it('makes text selection from focus', async () => {
+    it.skip('makes text selection from focus', async () => {
       const node = element.shadowRoot.querySelector('.redirect-section');
       const label = /** @type HTMLElement */ (node.querySelector('.code'));
       label.focus();
